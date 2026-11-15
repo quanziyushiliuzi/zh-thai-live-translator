@@ -157,6 +157,21 @@
       .status-line { text-align: center; font-size: 13.5px; color: var(--ink-soft); min-height: 22px; }
       .status-line.err { color: var(--bad); font-weight: 600; }
 
+      /* ---------- speech support alert ---------- */
+      .speech-alert {
+        border: 2px solid var(--bad); border-radius: 12px; padding: 14px;
+        margin-top: 12px; background: var(--panel-2); text-align: left;
+      }
+      .speech-alert.warn { border-color: var(--amber); }
+      .speech-alert strong { display: block; font-size: 16px; margin-bottom: 4px; }
+      .speech-alert p { margin: 0 0 8px; font-size: 14px; }
+      .speech-alert ul { margin: 0 0 12px; padding-left: 20px; font-size: 14px; }
+      .speech-alert li { margin-bottom: 5px; }
+      .speech-alert-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      .speech-alert-actions .btn { width: auto; flex: 1 1 180px; background: var(--zh); color: #fff; }
+      .speech-alert-actions .btn.ghost { background: transparent; color: var(--ink); flex: 0 1 auto; }
+      .mic-btn.unsupported { opacity: .55; filter: grayscale(.35); }
+
       .type-row { display: flex; gap: 8px; margin-top: 12px; }
       .type-row input {
         flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 12px;
@@ -249,6 +264,19 @@
         </div>
         <div class="live-line" id="liveLine"></div>
         <div class="status-line" id="statusLine"></div>
+        <div class="speech-alert" id="speechAlert" role="alert" hidden>
+          <strong id="speechAlertTitle"></strong>
+          <p id="speechAlertBody"></p>
+          <ul>
+            <li data-i18n="alt1">办法一（最推荐）：换 Chrome 或 Edge 打开这个页面再点麦克风——在浏览器菜单里找「在其他浏览器中打开」，或把网址复制到 Chrome 里打开。安卓自带浏览器大多没有网页语音识别，Chrome / Edge 才有。</li>
+            <li data-i18n="alt2">办法二（不用换浏览器）：用下面的打字框，点一下输入框，再点手机键盘上的麦克风图标说话——那是手机系统自己的语音输入，不经过浏览器，文字进框后点「发送」照样翻译并读出来。</li>
+            <li data-i18n="alt3">办法三：直接打字发送，翻译和朗读都不受影响。</li>
+          </ul>
+          <div class="speech-alert-actions">
+            <button class="btn" id="kbVoiceBtn" type="button" data-i18n="kbVoiceBtn">用手机键盘的语音输入</button>
+            <button class="btn ghost" id="speechRecheckBtn" type="button" data-i18n="recheckBtn">重新检测</button>
+          </div>
+        </div>
         <div class="type-row">
           <select id="typeLang" aria-label="input language">
             <option value="zh">中文 → 泰语</option>
@@ -289,7 +317,7 @@
         <ul>
           <li data-i18n="tip1">全程要联网：语音识别、翻译、同步都走网络。</li>
           <li data-i18n="tip2">第一次点麦克风，浏览器会问麦克风权限，点「允许」。</li>
-          <li data-i18n="tip3">iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应、或听一会儿停了，重新点一下按钮；还不行就用打字框输入，翻译和朗读照样能用。</li>
+          <li data-i18n="tip3">安卓自带浏览器（vivo / iQOO、华为、小米自带浏览器等）大多不支持网页语音识别，点了麦克风也不会出文字，页面会弹出红色提示牌说明原因和办法；要语音说话请用 Chrome / Edge 打开本页，或用打字框 + 键盘上的麦克风图标说话。iPhone Safari 同样不稳，处理办法相同。</li>
           <li data-i18n="tip4">对话是公开同步的：所有打开这个页面的人都能看到、听到，不要说隐私内容；不存录音，翻译文字走免费翻译接口。</li>
         </ul>
       </section>
@@ -320,7 +348,7 @@
             tipsTitle: "用之前知道这几点",
             tip1: "全程要联网：语音识别、翻译、同步都走网络。",
             tip2: "第一次点麦克风，浏览器会问麦克风权限，点「允许」。",
-            tip3: "iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应、或听一会儿停了，重新点一下按钮；还不行就用打字框输入，翻译和朗读照样能用。",
+            tip3: "安卓自带浏览器（vivo / iQOO、华为、小米自带浏览器等）大多不支持网页语音识别，点了麦克风也不会出文字，页面会弹出红色提示牌说明原因和办法；要语音说话请用 Chrome / Edge 打开本页，或用打字框 + 键盘上的麦克风图标说话。iPhone Safari 同样不稳，处理办法相同。",
             tip4: "对话是公开同步的：所有打开这个页面的人都能看到、听到，不要说隐私内容；不存录音，翻译文字走免费翻译接口。",
             waitingPeer: "房间已建好，等对方输入房间码加入…",
             badCode: "没找到房间（已等 30 秒没人应答）：① 对方还没点「创建房间」，或对方页面已经关了；② 你输的 6 位码和对方的码不一致，必须一位都不差；③ 让对方保持页面开着，你再点一次加入",
@@ -350,7 +378,26 @@
             enterCode: "先输入 6 位数字房间码",
             netNeeded: "连线组件没加载成功（可能没联网），刷新页面重试；不连房间也能单独翻译",
             recogNet: "语音识别连不上网，检查网络后重试",
-            audioCapture: "麦克风不可用，可能被其他应用占用了，关掉后重试"
+            audioCapture: "麦克风不可用，可能被其他应用占用了，关掉后重试",
+            alt1: "办法一（最推荐）：换 Chrome 或 Edge 打开这个页面再点麦克风——在浏览器菜单里找「在其他浏览器中打开」，或把网址复制到 Chrome 里打开。安卓自带浏览器大多没有网页语音识别，Chrome / Edge 才有。",
+            alt2: "办法二（不用换浏览器）：用下面的打字框，点一下输入框，再点手机键盘上的麦克风图标说话——那是手机系统自己的语音输入，不经过浏览器，文字进框后点「发送」照样翻译并读出来。",
+            alt3: "办法三：直接打字发送，翻译和朗读都不受影响。",
+            kbVoiceBtn: "用手机键盘的语音输入", recheckBtn: "重新检测",
+            kbVoiceHint: "已切到打字框：点一下输入框，再点键盘上的麦克风图标说话（手机系统自己的语音输入），文字进框后点「发送」就会翻译并读出来",
+            spUnsupTitle: "⚠ 这个浏览器用不了网页语音识别",
+            spUnsupBody: "检测结果：当前浏览器没有提供网页语音识别接口（SpeechRecognition），所以点麦克风说话不会出文字——不是你没开权限，是浏览器本身不支持。vivo / iQOO 自带浏览器就是这种情况，别再反复点麦克风了，按下面办法换一种方式说话。",
+            spInsecureBody: "检测结果：当前页面不是安全连接（https）打开的，浏览器不让网页用麦克风和语音识别。换 https 链接打开，或按下面办法说话。",
+            spVivoTitle: "你用的是 vivo / iQOO 自带浏览器，语音识别多半调不通",
+            spVivoBody: "这个浏览器即使有语音识别接口，识别服务也经常连不上，表现就是点了麦克风、说了话、一直不出文字。可以先说一句短句试试；还是不出文字就别试了，按下面办法说话。",
+            spFailTitle: "⚠ 语音识别没出文字，已停下",
+            spFailBody: "麦克风能打开，但连续几次说话都没识别出文字。常见原因：识别服务被浏览器或网络拦截——国内网络下识别要连的服务器经常连不上，安卓自带浏览器尤其常见。这不是你说话的问题，按下面办法换一种方式。",
+            spNetTitle: "⚠ 语音识别服务连不上网",
+            spNetBody: "浏览器把你的声音送去识别时连不上识别服务器（国内网络下很常见，vivo 自带浏览器更明显），所以一直不出文字。已停下麦克风，按下面办法说话，或换个网络再点麦克风重试。",
+            spDeniedTitle: "⚠ 麦克风权限没打开",
+            spDeniedBody: "浏览器没拿到麦克风权限，识别没法开始。去浏览器设置里把这个网站的麦克风改成「允许」，或在系统设置里给浏览器开麦克风权限，再回来点麦克风；不想改权限就按下面办法说话。",
+            recheckOk: "重新检测：这个浏览器有语音识别接口，点上面的麦克风，说一句短句试试",
+            recheckStill: "重新检测了：还是没有可用的语音识别接口，这个浏览器确实不支持，请按提示牌里的办法说话",
+            openingMic: "正在打开麦克风…"
           },
           th: {
             titleA: "จีน", titleB: "ไทย", titleC: "แปลเรียลไทม์",
@@ -370,7 +417,7 @@
             tipsTitle: "รู้ไว้ก่อนใช้",
             tip1: "ต้องมีอินเทอร์เน็ตตลอด: การรู้จำเสียง การแปล และการเชื่อมต่อห้องใช้เครือข่ายทั้งหมด",
             tip2: "กดไมโครโฟนครั้งแรก เบราว์เซอร์จะขออนุญาตใช้ไมค์ ให้กด «อนุญาต»",
-            tip3: "เบราว์เซอร์บน iPhone อาจรองรับการรู้จำเสียงบนเว็บไม่เสถียร ถ้ากดไมค์แล้วไม่มีอะไรเกิดขึ้นหรือหยุดฟังไปเอง ให้กดปุ่มอีกครั้ง ถ้ายังไม่ได้ให้พิมพ์แทน การแปลและการอ่านออกเสียงยังใช้ได้",
+            tip3: "เบราว์เซอร์ที่มากับเครื่อง Android (vivo / iQOO, Huawei, Xiaomi ฯลฯ) ส่วนใหญ่ไม่รองรับการรู้จำเสียงบนเว็บ กดไมค์แล้วจะไม่มีข้อความขึ้น หน้านี้จะแสดงป้ายเตือนสีแดงบอกสาเหตุและวิธีแก้ ถ้าอยากพูดด้วยเสียง ให้เปิดหน้านี้ใน Chrome / Edge หรือใช้ช่องพิมพ์ร่วมกับไอคอนไมค์บนแป้นพิมพ์ของมือถือ Safari บน iPhone ก็ไม่เสถียรเช่นกัน ใช้วิธีเดียวกัน",
             tip4: "บทสนทนานี้ซิงค์แบบสาธารณะ ทุกคนที่เปิดหน้านี้อยู่จะเห็นและได้ยิน อย่าพูดเรื่องส่วนตัว ไม่มีการบันทึกเสียง ข้อความแปลผ่านบริการแปลฟรี",
             waitingPeer: "สร้างห้องแล้ว รออีกฝ่ายใส่รหัสเข้าร่วม…",
             badCode: "ไม่พบห้อง (รอ 30 วินาทีไม่มีใครตอบ): ① อีกฝ่ายยังไม่ได้กดสร้างห้อง หรือปิดหน้าไปแล้ว ② รหัส 6 หลักไม่ตรงกัน ต้องตรงทุกตัว ③ ให้อีกฝ่ายเปิดหน้านี้ค้างไว้ แล้วลองเข้าร่วมอีกครั้ง",
@@ -400,7 +447,26 @@
             enterCode: "ใส่รหัสห้องตัวเลข 6 หลักก่อน",
             netNeeded: "โหลดตัวเชื่อมต่อไม่สำเร็จ (อาจไม่มีเน็ต) รีเฟรชแล้วลองใหม่ ไม่เข้าห้องก็แปลคนเดียวได้",
             recogNet: "การรู้จำเสียงเชื่อมต่อเครือข่ายไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่",
-            audioCapture: "ใช้ไมโครโฟนไม่ได้ อาจมีแอปอื่นใช้ไมค์อยู่ ปิดแอปนั้นแล้วลองใหม่"
+            audioCapture: "ใช้ไมโครโฟนไม่ได้ อาจมีแอปอื่นใช้ไมค์อยู่ ปิดแอปนั้นแล้วลองใหม่",
+            alt1: "วิธีที่ 1 (แนะนำที่สุด): เปิดหน้านี้ใน Chrome หรือ Edge แล้วค่อยกดไมค์ — หาเมนู «เปิดในเบราว์เซอร์อื่น» ในเบราว์เซอร์ หรือคัดลอกที่อยู่เว็บไปเปิดใน Chrome เบราว์เซอร์ที่มากับเครื่อง Android ส่วนใหญ่ไม่มีการรู้จำเสียงบนเว็บ มีเฉพาะ Chrome / Edge",
+            alt2: "วิธีที่ 2 (ไม่ต้องเปลี่ยนเบราว์เซอร์): ใช้ช่องพิมพ์ด้านล่าง แตะช่องพิมพ์ แล้วแตะไอคอนไมค์บนแป้นพิมพ์มือถือเพื่อพูด — นั่นคือการพิมพ์ด้วยเสียงของระบบมือถือเอง ไม่ผ่านเบราว์เซอร์ ข้อความเข้าช่องแล้วกด «ส่ง» ก็แปลและอ่านออกเสียงได้เหมือนกัน",
+            alt3: "วิธีที่ 3: พิมพ์แล้วส่งตรง ๆ การแปลและการอ่านออกเสียงไม่กระทบ",
+            kbVoiceBtn: "ใช้การพิมพ์ด้วยเสียงบนแป้นพิมพ์", recheckBtn: "ตรวจอีกครั้ง",
+            kbVoiceHint: "สลับไปช่องพิมพ์แล้ว: แตะช่องพิมพ์ แล้วแตะไอคอนไมค์บนแป้นพิมพ์เพื่อพูด (การพิมพ์ด้วยเสียงของระบบมือถือ) ข้อความเข้าช่องแล้วกด «ส่ง» ระบบจะแปลและอ่านออกเสียงให้",
+            spUnsupTitle: "⚠ เบราว์เซอร์นี้ใช้การรู้จำเสียงบนเว็บไม่ได้",
+            spUnsupBody: "ผลการตรวจ: เบราว์เซอร์นี้ไม่มีอินเทอร์เฟซรู้จำเสียงบนเว็บ (SpeechRecognition) กดไมค์พูดไปก็ไม่มีข้อความขึ้น — ไม่ใช่เพราะคุณไม่ได้อนุญาต แต่เบราว์เซอร์ไม่รองรับเอง เบราว์เซอร์ที่มากับเครื่อง vivo / iQOO เป็นแบบนี้ อย่ากดไมค์ซ้ำ ๆ ให้ใช้วิธีด้านล่างแทน",
+            spInsecureBody: "ผลการตรวจ: หน้านี้ไม่ได้เปิดผ่านการเชื่อมต่อที่ปลอดภัย (https) เบราว์เซอร์จึงไม่ให้เว็บใช้ไมค์และการรู้จำเสียง ให้เปิดลิงก์ https หรือใช้วิธีด้านล่าง",
+            spVivoTitle: "คุณใช้เบราว์เซอร์ที่มากับเครื่อง vivo / iQOO การรู้จำเสียงมักใช้ไม่ได้",
+            spVivoBody: "เบราว์เซอร์นี้ถึงจะมีอินเทอร์เฟซรู้จำเสียง บริการรู้จำก็มักเชื่อมต่อไม่ได้ อาการคือกดไมค์ พูดแล้ว ไม่มีข้อความขึ้นเลย ลองพูดประโยคสั้น ๆ ดูก่อน ถ้ายังไม่มีข้อความ อย่าลองต่อ ให้ใช้วิธีด้านล่าง",
+            spFailTitle: "⚠ การรู้จำเสียงไม่มีข้อความออกมา หยุดแล้ว",
+            spFailBody: "ไมค์เปิดได้ แต่พูดหลายครั้งแล้วไม่มีข้อความที่รู้จำได้ สาเหตุมักคือบริการรู้จำถูกเบราว์เซอร์หรือเครือข่ายบล็อก — ในจีนเซิร์ฟเวอร์รู้จำมักเชื่อมต่อไม่ได้ เบราว์เซอร์ที่มากับเครื่อง Android เป็นบ่อย ไม่ใช่ความผิดของคุณ ให้ใช้วิธีด้านล่าง",
+            spNetTitle: "⚠ บริการรู้จำเสียงเชื่อมต่อเครือข่ายไม่ได้",
+            spNetBody: "ตอนเบราว์เซอร์ส่งเสียงของคุณไปรู้จำ มันเชื่อมต่อเซิร์ฟเวอร์รู้จำไม่ได้ (พบบ่อยในจีน เบราว์เซอร์ vivo เป็นชัด) จึงไม่มีข้อความขึ้นเลย หยุดไมค์แล้ว ให้ใช้วิธีด้านล่าง หรือเปลี่ยนเครือข่ายแล้วกดไมค์ลองใหม่",
+            spDeniedTitle: "⚠ ยังไม่ได้เปิดสิทธิ์ไมโครโฟน",
+            spDeniedBody: "เบราว์เซอร์ไม่ได้รับสิทธิ์ใช้ไมค์ การรู้จำจึงเริ่มไม่ได้ ไปตั้งค่าเบราว์เซอร์เปลี่ยนสิทธิ์ไมค์ของเว็บนี้เป็น «อนุญาต» หรือเปิดสิทธิ์ไมค์ให้เบราว์เซอร์ในการตั้งค่าระบบ แล้วกลับมากดไมค์ ถ้าไม่อยากแก้สิทธิ์ ให้ใช้วิธีด้านล่าง",
+            recheckOk: "ตรวจใหม่แล้ว: เบราว์เซอร์นี้มีอินเทอร์เฟซรู้จำเสียง กดไมค์ด้านบนแล้วลองพูดประโยคสั้น ๆ",
+            recheckStill: "ตรวจใหม่แล้ว: ยังไม่มีอินเทอร์เฟซรู้จำเสียงที่ใช้ได้ เบราว์เซอร์นี้ไม่รองรับจริง ๆ ให้พูดด้วยวิธีในป้ายเตือน",
+            openingMic: "กำลังเปิดไมโครโฟน…"
           }
         };
         var uiLang = "zh";
@@ -598,12 +664,27 @@
         }
 
         /* ============ speech recognition (continuous conversation mode) ============
-           Tap once to start listening; the recognizer keeps running across
-           sentences instead of dying after the first one. While a translation
-           is being translated / read aloud the mic is paused (so the phone does
-           not try to recognize its own voice), then listening resumes on its
-           own. Tap the button again to stop. Sessions that end on their own
-           (mobile browsers cut them off constantly) are restarted silently. */
+           Tap once to start listening; sentences are recognized one session
+           at a time and sessions restart across sentences instead of dying
+           after the first one. While a translation is being translated /
+           read aloud the mic is paused (so the phone does not try to
+           recognize its own voice), then listening resumes on its own.
+           Tap the button again to stop.
+
+           Android stock browsers (vivo / iQOO, Huawei, Xiaomi…) mostly ship
+           WITHOUT the Web Speech API, and even Chrome's recognizer sends
+           audio to a recognition server that is often unreachable from
+           mainland China. The old build only set a small status line in
+           those cases — or silently restarted empty sessions forever — so
+           tapping the mic looked like nothing at all happened. Now:
+           - support is detected up front and a big alert card says plainly
+             when this browser cannot do web speech recognition, with the
+             ways that do work (Chrome / Edge, keyboard voice input, typing);
+           - a session that ends holding only interim text still delivers
+             that text (Android recognizers often never mark a final);
+           - network / service / language errors and three empty sessions
+           in a row stop the mic and explain themselves on the alert card
+             instead of looping silently. */
         var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         var recog = null;
         var wantListen = false;    // user toggled listening on
@@ -611,14 +692,85 @@
         var holdListen = false;    // paused while translating / speaking aloud
         var recogActive = false;   // a recognition session is running
         var recogStarting = false; // a session start is already scheduled
-        var sessionHeard = false;  // current session produced any result
         var startFails = 0;        // consecutive failed session starts
+        var emptySessions = 0;     // consecutive sessions with no text at all
         var restartTimer = null;
-        // iOS Safari's recognizer aborts almost immediately in continuous
-        // mode; there we run single-utterance sessions and lean on the
-        // auto-restart loop below instead
-        var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent || "") ||
-          ((navigator.userAgent || "").indexOf("Macintosh") >= 0 && "ontouchend" in document);
+        var uaStr = navigator.userAgent || "";
+        var isIOS = /iP(hone|ad|od)/.test(uaStr) ||
+          (uaStr.indexOf("Macintosh") >= 0 && "ontouchend" in document);
+        var isAndroid = /Android/i.test(uaStr);
+        // vivo / iQOO stock browser: the reported case — no usable Web
+        // Speech API, recognition "just doesn't work" with no explanation
+        var isVivoBrowser = /VivoBrowser|iQOO|vivo/i.test(uaStr);
+        var isStockAndroid = isAndroid && !/Chrome\/|EdgA|OPR\/|SamsungBrowser|Firefox/i.test(uaStr);
+
+        /* ---------- speech support alert card ---------- */
+        var lastAlert = null; // { title, body, warn }
+        function showSpeechAlert(titleKey, bodyKey, warn) {
+          lastAlert = { title: titleKey, body: bodyKey, warn: !!warn };
+          var box = $("speechAlert");
+          if (!box) return;
+          $("speechAlertTitle").textContent = t(titleKey);
+          $("speechAlertBody").textContent = t(bodyKey);
+          box.className = "speech-alert" + (warn ? " warn" : "");
+          box.hidden = false;
+        }
+        function hideSpeechAlert() {
+          lastAlert = null;
+          var box = $("speechAlert");
+          if (box) box.hidden = true;
+        }
+        function refreshSpeechAlert() { if (lastAlert) showSpeechAlert(lastAlert.title, lastAlert.body, lastAlert.warn); }
+        // re-render the alert in the new UI language after a language switch
+        $("uiLangBtn").addEventListener("click", function () { setTimeout(refreshSpeechAlert, 0); });
+        $("kbVoiceBtn").addEventListener("click", function () {
+          // the phone keyboard's own voice typing: system speech input that
+          // works in ANY browser, including vivo's — it fills the text box,
+          // then Send translates and reads it aloud as usual
+          var inp = $("typeInput");
+          try { inp.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+          setTimeout(function () { try { inp.focus(); } catch (e) {} }, 250);
+          setStatus(t("kbVoiceHint"));
+        });
+        $("speechRecheckBtn").addEventListener("click", function () {
+          SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (SR && window.isSecureContext) {
+            hideSpeechAlert();
+            markMicSupport();
+            setStatus(t("recheckOk"));
+          } else {
+            detectSpeechSupport();
+            setStatus(t("recheckStill"), true);
+          }
+        });
+        function markMicSupport() {
+          var un = !SR || !window.isSecureContext;
+          $("micZh").classList.toggle("unsupported", un);
+          $("micTh").classList.toggle("unsupported", un);
+        }
+        function detectSpeechSupport() {
+          markMicSupport();
+          if (!window.isSecureContext) {
+            showSpeechAlert("spUnsupTitle", "spInsecureBody", false);
+            setStatus(t("noSpeechSupport"), true);
+            return false;
+          }
+          if (!SR) {
+            // no interface at all (vivo / iQOO stock browser and most other
+            // Android stock browsers): say so loudly, up front, instead of
+            // letting the user tap the mic and get silence
+            showSpeechAlert("spUnsupTitle", "spUnsupBody", false);
+            setStatus(t("noSpeechSupport"), true);
+            return false;
+          }
+          if (isVivoBrowser || isStockAndroid) {
+            // an interface exists but the stock browser's recognition
+            // service routinely never answers: warn before the first tap,
+            // keep the workable alternatives on screen
+            showSpeechAlert("spVivoTitle", "spVivoBody", true);
+          }
+          return true;
+        }
 
         function setMicUI() {
           $("micZh").classList.toggle("listening", wantListen && listenLang === "zh");
@@ -632,38 +784,49 @@
           if (restartTimer) clearTimeout(restartTimer);
           restartTimer = setTimeout(function () { restartTimer = null; startSession(); }, delay || 0);
         }
+        function failListening(titleKey, bodyKey, statusKey) {
+          stopListeningAll();
+          showSpeechAlert(titleKey, bodyKey, false);
+          setStatus(t(statusKey || titleKey), true);
+        }
         function startSession() {
           if (!wantListen || holdListen || recogActive || recogStarting) return;
-          if (!SR) { stopListeningAll(); setStatus(t("noSpeechSupport"), true); return; }
+          if (!SR) { failListening("spUnsupTitle", "spUnsupBody", "noSpeechSupport"); return; }
           recogStarting = true;
           // brief pause lets the audio channel settle after TTS is cancelled (iOS)
           setTimeout(function () {
             recogStarting = false;
             if (!wantListen || holdListen || recogActive) return;
             var r;
-            try { r = new SR(); } catch (e) { stopListeningAll(); setStatus(t("noSpeechSupport"), true); return; }
+            try { r = new SR(); } catch (e) { failListening("spUnsupTitle", "spUnsupBody", "noSpeechSupport"); return; }
             recog = r;
-            sessionHeard = false;
+            var sessionHeard = false;   // any result (final or interim) this session
+            var submitted = false;      // a final already went to translation
+            var lastInterim = "";       // latest interim text, rescued on end
+            var sessionError = null;    // fatal error seen this session
+            var started = false;
             r.lang = listenLang === "zh" ? "zh-CN" : "th-TH";
             r.interimResults = true;
-            try { r.continuous = !isIOS; } catch (e) {}
+            // single-utterance sessions everywhere: continuous mode is what
+            // mobile recognizers (Android especially) choke on, ending
+            // sessions with nothing — the restart loop below chains them
+            try { r.continuous = false; } catch (e) {}
             r.maxAlternatives = 1;
-            r.onstart = function () { startFails = 0; };
-            var finalText = "";
+            r.onstart = function () { started = true; startFails = 0; };
             r.onresult = function (ev) {
-              var interim = "";
+              var finalText = "", interim = "";
               for (var i = ev.resultIndex; i < ev.results.length; i++) {
                 if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript;
                 else interim += ev.results[i][0].transcript;
               }
-              // any sign of speech (even interim-only) means the mic is
-              // alive; counting only finals marked live sessions as empty
-              if ((finalText + interim).trim()) sessionHeard = true;
+              if ((finalText + interim).trim()) { sessionHeard = true; emptySessions = 0; }
+              if (interim) lastInterim = interim;
               liveLine.textContent = finalText + interim;
               liveLine.classList.add("active");
               var said = finalText.trim();
               if (said) {
-                finalText = "";
+                submitted = true;
+                lastInterim = "";
                 // pause the mic before translating + speaking, resume after
                 holdListen = true;
                 if (recog) { try { recog.stop(); } catch (e) {} }
@@ -674,25 +837,49 @@
             r.onerror = function (ev) {
               var err = ev && ev.error;
               if (err === "not-allowed" || err === "service-not-allowed") {
-                stopListeningAll(); setStatus(t("micDenied"), true);
+                sessionError = "denied";
               } else if (err === "network") {
-                stopListeningAll(); setStatus(t("recogNet"), true);
+                sessionError = "network";
               } else if (err === "audio-capture") {
-                stopListeningAll(); setStatus(t("audioCapture"), true);
+                sessionError = "capture";
+              } else if (err === "language-not-supported") {
+                sessionError = "language";
               }
-              // "no-speech" / "aborted": onend below restarts while listening is on
+              // "no-speech" / "aborted": onend below decides what happens
             };
             r.onend = function () {
               recogActive = false;
               if (recog === r) recog = null;
               if (!wantListen) { setMicUI(); return; }
+              if (sessionError === "denied") { failListening("spDeniedTitle", "spDeniedBody", "micDenied"); return; }
+              if (sessionError === "network") { failListening("spNetTitle", "spNetBody", "recogNet"); return; }
+              if (sessionError === "capture") { failListening("spFailTitle", "spFailBody", "audioCapture"); return; }
+              if (sessionError === "language") { failListening("spFailTitle", "spFailBody", "noSpeechSupport"); return; }
               if (holdListen) return; // resumeListening restarts after speaking
-              // Mobile recognizers end sessions on their own after a few
-              // seconds of quiet. The old build counted those silent
-              // sessions and switched the mic off after six, telling the
-              // user nothing was heard — from then on the mic was dead
-              // while the button still looked on. Now a silent session
-              // just restarts: listening stays on until the user taps stop.
+              if (!submitted && lastInterim.trim()) {
+                // Android recognizers often end a session holding only
+                // interim text and never mark a final — the old build threw
+                // that text away, so the user "spoke and nothing happened".
+                // Treat the last interim as the sentence.
+                submitted = true;
+                sessionHeard = true;
+                emptySessions = 0;
+                holdListen = true;
+                liveLine.textContent = lastInterim.trim();
+                handleUtterance(lastInterim.trim(), listenLang, resumeListening);
+                return;
+              }
+              if (!sessionHeard) {
+                emptySessions++;
+                if (emptySessions >= 3) {
+                  // three sessions in a row produced nothing at all: this
+                  // is a dead recognition service (stock browser / blocked
+                  // network), not a quiet user — stop and say so plainly
+                  // instead of restarting forever in silence
+                  failListening("spFailTitle", "spFailBody", "noResult");
+                  return;
+                }
+              }
               scheduleStart(sessionHeard ? 300 : 500);
             };
             recogActive = true;
@@ -700,15 +887,23 @@
               recogActive = false;
               if (recog === r) recog = null;
               startFails++;
-              if (startFails >= 6) {
-                stopListeningAll();
-                setStatus(t("noSpeechSupport"), true);
+              if (startFails >= 3) {
+                failListening("spFailTitle", "spFailBody", "noSpeechSupport");
               } else {
                 // a start that races the previous session's teardown is
                 // normal on mobile; back off briefly and try again
                 scheduleStart(800);
               }
+              return;
             }
+            // a session whose onstart never arrives (stock browsers can
+            // accept start() and then do nothing at all) must not look like
+            // listening forever: count it as a failed start
+            setTimeout(function () {
+              if (recog === r && recogActive && !started && wantListen && !holdListen) {
+                try { r.abort(); } catch (e) {}
+              }
+            }, 3500);
           }, 250);
         }
         function resumeListening() {
@@ -732,28 +927,52 @@
           recogActive = false;
           setMicUI();
         }
-        function toggleListen(lang) {
-          if (!SR) { setStatus(t("noSpeechSupport"), true); return; }
-          if (wantListen && listenLang === lang) { stopListeningAll(); setStatus(""); return; }
-          if ("speechSynthesis" in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+        function beginListening(lang) {
           wantListen = true;
           listenLang = lang;
           holdListen = false;
           startFails = 0;
+          emptySessions = 0;
           setMicUI();
           listenStatus();
           liveLine.textContent = "";
           liveLine.classList.add("active");
-          if (recogActive && recog) {
-            // language switched mid-session: end this session, onend restarts in the new language
-            try { recog.stop(); } catch (e) {}
+          scheduleStart(50);
+        }
+        function toggleListen(lang) {
+          if (!SR || !window.isSecureContext) {
+            // unsupported browser: never fail silently — put the alert card
+            // (reason + the ways that do work) in front of the user
+            detectSpeechSupport();
+            return;
+          }
+          if (wantListen && listenLang === lang) { stopListeningAll(); setStatus(""); return; }
+          if ("speechSynthesis" in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+          hideSpeechAlert();
+          if (wantListen) { beginListening(lang); return; } // language switch while live
+          // preflight the microphone inside the tap gesture: on Android
+          // stock browsers SpeechRecognition can exist yet never ask for
+          // the mic — asking here surfaces a denied permission (or a
+          // missing mic API) as a clear message instead of dead silence
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            setStatus(t("openingMic"));
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+              var tracks = stream.getTracks();
+              for (var i = 0; i < tracks.length; i++) { try { tracks[i].stop(); } catch (e) {} }
+              beginListening(lang);
+            }, function () {
+              showSpeechAlert("spDeniedTitle", "spDeniedBody", false);
+              setStatus(t("micDenied"), true);
+            });
           } else {
-            scheduleStart(50);
+            beginListening(lang);
           }
         }
         $("micZh").addEventListener("click", function () { toggleListen("zh"); });
         $("micTh").addEventListener("click", function () { toggleListen("th"); });
-        if (!SR) setStatus(t("noSpeechSupport"), true);
+        // detect up front, before any tap: an unsupported browser shows
+        // the alert card on page load, not after a failed attempt
+        detectSpeechSupport();
         // phones kill the recognizer while the page is in the background
         // (switching to a chat app mid-conversation); pick listening back
         // up when the page becomes visible again
