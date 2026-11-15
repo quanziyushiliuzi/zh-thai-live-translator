@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>实时翻译网页版</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+      :root {
+        --bg: #f4f6f3;
+        --panel: #ffffff;
+        --panel-2: #ecefe9;
+        --ink: #17211b;
+        --ink-soft: #4c5a50;
+        --line: #d8ded4;
+        --zh: #0e7a63;
+        --zh-deep: #0a5c4b;
+        --th: #c8501f;
+        --th-deep: #a03e14;
+        --amber: #e9a13b;
+        --ok: #1d9d63;
+        --bad: #c0392b;
+        --shadow: 0 10px 30px rgba(23, 33, 27, .10);
+        --radius: 18px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1512;
+          --panel: #182019;
+          --panel-2: #212b22;
+          --ink: #eef3ec;
+          --ink-soft: #a7b5a8;
+          --line: #2e3b30;
+          --zh: #2fae8f;
+          --zh-deep: #238a70;
+          --th: #e87a4a;
+          --th-deep: #cf6536;
+          --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans SC", "Noto Sans Thai", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.55;
+      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      button, input { min-height: 44px; }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 48px; }
+
+      /* ---------- heading ---------- */
+      .head { padding: 10px 2px 18px; }
+      .head h1 { font-size: 30px; font-weight: 900; margin: 0 0 4px; letter-spacing: .5px; }
+      .head h1 .arr { color: var(--amber); padding: 0 2px; }
+      .head p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+      .uilink {
+        float: right; border: 1px solid var(--line); background: var(--panel);
+        color: var(--ink); border-radius: 999px; padding: 0 16px; font-weight: 700;
+      }
+
+      /* ---------- cards ---------- */
+      .card {
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: var(--radius); box-shadow: var(--shadow);
+        padding: 18px; margin-bottom: 16px;
+      }
+      .card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 800; }
+      .card .hint { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 12px; }
+
+      /* ---------- connection ---------- */
+      .status-row { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; margin-bottom: 14px; }
+      .dot { width: 11px; height: 11px; border-radius: 50%; background: #9aa79c; flex: none; }
+      .dot.on { background: var(--ok); box-shadow: 0 0 0 4px rgba(29,157,99,.18); }
+      .dot.wait { background: var(--amber); box-shadow: 0 0 0 4px rgba(233,161,59,.18); }
+      .conn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      @media (max-width: 560px) { .conn-grid { grid-template-columns: minmax(0, 1fr); } }
+      .conn-box { background: var(--panel-2); border-radius: 12px; padding: 14px; min-width: 0; }
+      .conn-box h3 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+      .conn-box p { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+      .btn {
+        border: none; border-radius: 12px; padding: 0 18px; font-weight: 700;
+        background: var(--ink); color: var(--bg); width: 100%;
+      }
+      .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+      .btn:disabled { opacity: .45; cursor: default; }
+      .join-row { display: flex; gap: 8px; }
+      .join-row input {
+        flex: 1; min-width: 0; width: 100%; border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--panel); color: var(--ink); padding: 0 14px;
+        font-size: 20px; font-weight: 800; letter-spacing: 4px; text-align: center;
+      }
+      .join-row .btn { width: auto; flex: none; }
+      .code-display { display: none; text-align: center; padding: 6px 0 2px; }
+      .code-display .code {
+        font-size: 40px; font-weight: 900; letter-spacing: 10px; color: var(--zh-deep);
+      }
+      @media (prefers-color-scheme: dark) { .code-display .code { color: var(--zh); } }
+      .code-display p { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+
+      /* ---------- talk zone ---------- */
+      .talk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      @media (max-width: 560px) { .talk-grid { grid-template-columns: minmax(0, 1fr); } }
+      .mic-btn {
+        border: none; border-radius: 16px; color: #fff; padding: 20px 16px 16px;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        min-height: 148px; justify-content: center; position: relative;
+        transition: transform .08s ease;
+      }
+      .mic-btn:active { transform: scale(.985); }
+      .mic-btn.zh { background: var(--zh); }
+      .mic-btn.th { background: var(--th); }
+      .mic-btn .mic-ico { width: 46px; height: 46px; }
+      .mic-btn .big { font-size: 21px; font-weight: 900; }
+      .mic-btn .small { font-size: 13px; opacity: .85; font-weight: 500; }
+      .mic-btn.listening { outline: 4px solid var(--amber); outline-offset: 2px; }
+      .mic-btn.listening::after {
+        content: ""; position: absolute; inset: -4px; border-radius: 20px;
+        border: 3px solid var(--amber); opacity: .0; animation: pulse 1.2s ease-out infinite;
+      }
+      @keyframes pulse { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.05); } }
+      @media (prefers-reduced-motion: reduce) { .mic-btn.listening::after { animation: none; } }
+      .live-line {
+        margin-top: 14px; min-height: 30px; font-size: 16.5px; text-align: center;
+        color: var(--ink-soft);
+      }
+      .live-line.active { color: var(--ink); font-weight: 600; }
+      .status-line { text-align: center; font-size: 13.5px; color: var(--ink-soft); min-height: 22px; }
+      .status-line.err { color: var(--bad); font-weight: 600; }
+
+      .type-row { display: flex; gap: 8px; margin-top: 12px; }
+      .type-row input {
+        flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--panel); color: var(--ink); padding: 0 14px; font-size: 16px;
+      }
+      .type-row select {
+        border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel);
+        color: var(--ink); padding: 0 8px; min-height: 44px; font-weight: 700;
+      }
+      .type-row .btn { width: auto; flex: none; background: var(--zh); color: #fff; }
+      @media (prefers-color-scheme: dark) { .type-row .btn { background: var(--zh-deep); } }
+
+      /* ---------- settings row ---------- */
+      .set-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .toggle {
+        display: inline-flex; align-items: center; gap: 10px; border: 1.5px solid var(--line);
+        background: var(--panel); color: var(--ink); border-radius: 999px; padding: 0 16px 0 10px; font-weight: 700;
+      }
+      .toggle .pill { width: 40px; height: 24px; border-radius: 999px; background: #b9c4ba; position: relative; flex: none; transition: background .15s; }
+      .toggle .pill::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; }
+      .toggle[aria-pressed="true"] .pill { background: var(--ok); }
+      .toggle[aria-pressed="true"] .pill::after { left: 19px; }
+      .set-row .spacer { flex: 1; }
+
+      /* ---------- feed ---------- */
+      .feed-head { display: flex; align-items: baseline; justify-content: space-between; }
+      .feed { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+      .empty { text-align: center; color: var(--ink-soft); font-size: 14.5px; padding: 26px 10px; border: 1.5px dashed var(--line); border-radius: 12px; }
+      .msg { max-width: 88%; border-radius: 14px; padding: 12px 14px; position: relative; }
+      .msg.mine { align-self: flex-end; background: var(--panel-2); border-bottom-right-radius: 4px; }
+      .msg.theirs { align-self: flex-start; background: var(--panel-2); border-bottom-left-radius: 4px; }
+      .msg .meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; font-weight: 700; }
+      .msg .tag { padding: 1px 8px; border-radius: 999px; color: #fff; font-size: 11.5px; }
+      .tag.zh { background: var(--zh); } .tag.th { background: var(--th); }
+      .msg .orig { font-size: 14.5px; color: var(--ink-soft); }
+      .msg .tran { font-size: 19px; font-weight: 700; margin-top: 2px; word-break: break-word; }
+      .msg .replay {
+        position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; min-height: 40px;
+        border-radius: 50%; border: 1px solid var(--line); background: var(--panel);
+        display: flex; align-items: center; justify-content: center; padding: 0;
+      }
+      .msg .replay svg { width: 19px; height: 19px; fill: var(--ink); }
+      .msg.pending { opacity: .6; }
+
+      /* ---------- tips ---------- */
+      .tips { font-size: 13.5px; color: var(--ink-soft); }
+      .tips h2 { color: var(--ink); }
+      .tips ul { margin: 6px 0 0; padding-left: 20px; }
+      .tips li { margin-bottom: 5px; }
+      .tips b { color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <div class="head">
+        <button class="uilink" id="uiLangBtn" type="button">ไทย</button>
+        <h1><span data-i18n="titleA">中文</span><span class="arr">⇄</span><span data-i18n="titleB">泰语</span> <span data-i18n="titleC">实时翻译</span></h1>
+        <p data-i18n="subtitle">两个人各开这个页面，进同一个房间：你说中文，她那边听到泰语；她说泰语，你这边听到中文。</p>
+      </div>
+
+      <!-- connection -->
+      <section class="card" aria-label="connection">
+        <h2 data-i18n="connTitle">先连上对方</h2>
+        <p class="hint" data-i18n="connHint">一个人创建房间，把 6 位房间码告诉对方；对方输入房间码加入。连上之后，你说的话翻译完会自动发到对方手机上读出来。不连房间也能单独用：翻译会在自己手机上读出来，适合开着视频免提聊。</p>
+        <div class="status-row"><span class="dot" id="connDot"></span><span id="connText" data-i18n="notConn">未连接</span></div>
+        <div class="conn-grid">
+          <div class="conn-box">
+            <h3 data-i18n="createTitle">我创建房间</h3>
+            <p data-i18n="createHint">点按钮生成房间码，发给对方。</p>
+            <button class="btn" id="createBtn" type="button" data-i18n="createBtn">创建房间</button>
+            <div class="code-display" id="codeDisplay">
+              <div class="code" id="codeText">------</div>
+              <p data-i18n="codeHint">把这个码告诉对方，让她在右边输入</p>
+            </div>
+          </div>
+          <div class="conn-box">
+            <h3 data-i18n="joinTitle">我加入房间</h3>
+            <p data-i18n="joinHint">输入对方给你的 6 位房间码。</p>
+            <div class="join-row">
+              <input id="joinInput" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="000000" aria-label="room code" />
+              <button class="btn" id="joinBtn" type="button" data-i18n="joinBtn">加入</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- talk -->
+      <section class="card" aria-label="talk">
+        <h2 data-i18n="talkTitle">按住不用，点一下就说话</h2>
+        <p class="hint" data-i18n="talkHint">点自己语言的按钮，说一句话，说完自动翻译并读出来。说短句、慢一点，翻译更准。</p>
+        <div class="talk-grid">
+          <button class="mic-btn zh" id="micZh" type="button">
+            <svg class="mic-ico" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm7-3a7 7 0 0 1-13.7 1.5L7 14a5 5 0 0 0 4 2.9V20H8v2h8v-2h-3v-3.1A7 7 0 0 0 19 12h-2z"/></svg>
+            <span class="big">我说中文</span>
+            <span class="small">翻成泰语 · แปลเป็นไทย</span>
+          </button>
+          <button class="mic-btn th" id="micTh" type="button">
+            <svg class="mic-ico" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm7-3a7 7 0 0 1-13.7 1.5L7 14a5 5 0 0 0 4 2.9V20H8v2h8v-2h-3v-3.1A7 7 0 0 0 19 12h-2z"/></svg>
+            <span class="big">ฉันพูดไทย</span>
+            <span class="small">แปลเป็นจีน · 翻成中文</span>
+          </button>
+        </div>
+        <div class="live-line" id="liveLine"></div>
+        <div class="status-line" id="statusLine"></div>
+        <div class="type-row">
+          <select id="typeLang" aria-label="input language">
+            <option value="zh">中文 → 泰语</option>
+            <option value="th">ไทย → จีน</option>
+          </select>
+          <input id="typeInput" type="text" data-i18n-ph="typePh" placeholder="语音用不了时，打字输入，按发送翻译" />
+          <button class="btn" id="typeSend" type="button" data-i18n="sendBtn">发送</button>
+        </div>
+      </section>
+
+      <!-- settings -->
+      <div class="card" style="padding:14px 18px;">
+        <div class="set-row">
+          <button class="toggle" id="autoSpeakToggle" type="button" aria-pressed="true">
+            <span class="pill"></span><span data-i18n="autoSpeak">自动朗读译文</span>
+          </button>
+          <button class="toggle" id="slowToggle" type="button" aria-pressed="false">
+            <span class="pill"></span><span data-i18n="slowSpeak">慢速朗读</span>
+          </button>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="clearBtn" type="button" style="width:auto;" data-i18n="clearBtn">清空对话</button>
+        </div>
+      </div>
+
+      <!-- feed -->
+      <section class="card" aria-label="conversation">
+        <div class="feed-head">
+          <h2 data-i18n="feedTitle">对话记录</h2>
+        </div>
+        <div class="feed" id="feed">
+          <div class="empty" id="emptyFeed" data-i18n="emptyFeed">还没有对话。点上面的麦克风，说第一句吧。</div>
+        </div>
+      </section>
+
+      <!-- tips -->
+      <section class="card tips">
+        <h2 data-i18n="tipsTitle">用之前知道这几点</h2>
+        <ul>
+          <li data-i18n="tip1">全程要联网：语音识别、翻译、房间连线都走网络。</li>
+          <li data-i18n="tip2">第一次点麦克风，浏览器会问麦克风权限，点「允许」。</li>
+          <li data-i18n="tip3">iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应，用下面的打字框输入，翻译和朗读照样能用。</li>
+          <li data-i18n="tip4">房间连线是手机对手机直连，不经过服务器存录音；翻译文字走免费翻译接口。</li>
+        </ul>
+      </section>
+
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ============ i18n (UI language: zh / th) ============ */
+        var I18N = {
+          zh: {
+            titleA: "中文", titleB: "泰语", titleC: "实时翻译",
+            subtitle: "两个人各开这个页面，进同一个房间：你说中文，她那边听到泰语；她说泰语，你这边听到中文。",
+            connTitle: "先连上对方", connHint: "一个人创建房间，把 6 位房间码告诉对方；对方输入房间码加入。连上之后，你说的话翻译完会自动发到对方手机上读出来。不连房间也能单独用：翻译会在自己手机上读出来，适合开着视频免提聊。",
+            notConn: "未连接", createTitle: "我创建房间", createHint: "点按钮生成房间码，发给对方。",
+            createBtn: "创建房间", codeHint: "把这个码告诉对方，让她在右边输入",
+            joinTitle: "我加入房间", joinHint: "输入对方给你的 6 位房间码。", joinBtn: "加入",
+            talkTitle: "点一下按钮就说话", talkHint: "点自己语言的按钮，说一句话，说完自动翻译并读出来。说短句、慢一点，翻译更准。",
+            typePh: "语音用不了时，打字输入，按发送翻译", sendBtn: "发送",
+            autoSpeak: "自动朗读译文", slowSpeak: "慢速朗读", clearBtn: "清空对话",
+            feedTitle: "对话记录", emptyFeed: "还没有对话。点上面的麦克风，说第一句吧。",
+            tipsTitle: "用之前知道这几点",
+            tip1: "全程要联网：语音识别、翻译、房间连线都走网络。",
+            tip2: "第一次点麦克风，浏览器会问麦克风权限，点「允许」。",
+            tip3: "iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应，用打字框输入，翻译和朗读照样能用。",
+            tip4: "房间连线是手机对手机直连，不存录音；翻译文字走免费翻译接口。",
+            waitingPeer: "房间已建好，等对方输入房间码加入…",
+            connecting: "正在连接…",
+            connected: "已连接，可以说话了",
+            connLost: "连接断开了，可以重新创建或加入房间",
+            connFail: "连接失败，检查网络后重试",
+            badCode: "没找到这个房间码，确认对方已经创建房间",
+            listeningZh: "正在听你说中文…说完停顿一下即可",
+            listeningTh: "正在听泰语…",
+            translating: "翻译中…",
+            noSpeechSupport: "这个浏览器不支持网页语音识别，请用打字输入（翻译和朗读不受影响）",
+            micDenied: "麦克风没打开，去浏览器设置里允许麦克风后重试，或改用打字",
+            noResult: "没听清，再说一次，或者打字输入",
+            translateFail: "翻译接口没响应，检查网络后重试",
+            fromMe: "我说的", fromPeer: "对方说的",
+            enterCode: "先输入 6 位房间码",
+            netNeeded: "连线组件没加载成功（可能没联网），刷新页面重试；不连房间也能单独翻译"
+          },
+          th: {
+            titleA: "จีน", titleB: "ไทย", titleC: "แปลเรียลไทม์",
+            subtitle: "เปิดหน้านี้คนละเครื่อง เข้าห้องเดียวกัน: เขาพูดจีน คุณได้ยินเสียงไทย คุณพูดไทย เขาได้ยินเสียงจีน",
+            connTitle: "เชื่อมต่อกันก่อน", connHint: "คนหนึ่งสร้างห้องแล้วบอกรหัส 6 หลักให้อีกคน อีกคนใส่รหัสเพื่อเข้าร่วม พอเชื่อมกันแล้ว คำพูดจะถูกแปลและส่งไปอ่านออกเสียงที่เครื่องของอีกฝ่าย ไม่เข้าห้องก็ใช้คนเดียวได้",
+            notConn: "ยังไม่เชื่อมต่อ", createTitle: "ฉันสร้างห้อง", createHint: "กดปุ่มเพื่อรับรหัสห้อง แล้วส่งให้อีกฝ่าย",
+            createBtn: "สร้างห้อง", codeHint: "บอกรหัสนี้ให้อีกฝ่ายใส่ในช่องด้านขวา",
+            joinTitle: "ฉันเข้าห้อง", joinHint: "ใส่รหัสห้อง 6 หลักที่อีกฝ่ายให้มา", joinBtn: "เข้าร่วม",
+            talkTitle: "กดปุ่มแล้วพูดได้เลย", talkHint: "กดปุ่มภาษาของตัวเอง พูดหนึ่งประโยค ระบบจะแปลและอ่านออกเสียงให้อัตโนมัติ พูดสั้น ๆ ช้า ๆ จะแปลแม่นกว่า",
+            typePh: "ถ้าใช้เสียงไม่ได้ พิมพ์ที่นี่แล้วกดส่ง", sendBtn: "ส่ง",
+            autoSpeak: "อ่านคำแปลออกเสียงอัตโนมัติ", slowSpeak: "อ่านช้า ๆ", clearBtn: "ล้างบทสนทนา",
+            feedTitle: "ประวัติการคุย", emptyFeed: "ยังไม่มีบทสนทนา กดไมโครโฟนด้านบนแล้วพูดประโยคแรกเลย",
+            tipsTitle: "รู้ไว้ก่อนใช้",
+            tip1: "ต้องมีอินเทอร์เน็ตตลอด: การรู้จำเสียง การแปล และการเชื่อมต่อห้องใช้เครือข่ายทั้งหมด",
+            tip2: "กดไมโครโฟนครั้งแรก เบราว์เซอร์จะขออนุญาตใช้ไมค์ ให้กด «อนุญาต»",
+            tip3: "เบราว์เซอร์บน iPhone อาจไม่รองรับการรู้จำเสียงบนเว็บ ถ้ากดไมค์แล้วไม่มีอะไรเกิดขึ้น ให้พิมพ์แทน การแปลและการอ่านออกเสียงยังใช้ได้",
+            tip4: "การเชื่อมต่อห้องเป็นการเชื่อมเครื่องต่อเครื่องโดยตรง ไม่มีการบันทึกเสียง ข้อความแปลผ่านบริการแปลฟรี",
+            waitingPeer: "สร้างห้องแล้ว รออีกฝ่ายใส่รหัสเข้าร่วม…",
+            connecting: "กำลังเชื่อมต่อ…",
+            connected: "เชื่อมต่อแล้ว พูดได้เลย",
+            connLost: "การเชื่อมต่อหลุด สร้างห้องหรือเข้าห้องใหม่ได้",
+            connFail: "เชื่อมต่อไม่สำเร็จ ตรวจเครือข่ายแล้วลองใหม่",
+            badCode: "ไม่พบรหัสห้องนี้ ตรวจว่าอีกฝ่ายสร้างห้องแล้ว",
+            listeningZh: "กำลังฟังภาษาจีน…",
+            listeningTh: "กำลังฟังภาษาไทย… พูดจบแล้วหยุดนิดหนึ่ง",
+            translating: "กำลังแปล…",
+            noSpeechSupport: "เบราว์เซอร์นี้ไม่รองรับการรู้จำเสียงบนเว็บ กรุณาพิมพ์แทน (การแปลและอ่านออกเสียงยังใช้ได้)",
+            micDenied: "ไมค์ยังไม่เปิด ไปตั้งค่าเบราว์เซอร์เพื่ออนุญาตไมค์ หรือพิมพ์แทน",
+            noResult: "ฟังไม่ชัด ลองพูดอีกครั้ง หรือพิมพ์แทน",
+            translateFail: "บริการแปลไม่ตอบสนอง ตรวจเครือข่ายแล้วลองใหม่",
+            fromMe: "ฉันพูด", fromPeer: "อีกฝ่ายพูด",
+            enterCode: "ใส่รหัสห้อง 6 หลักก่อน",
+            netNeeded: "โหลดตัวเชื่อมต่อไม่สำเร็จ (อาจไม่มีเน็ต) รีเฟรชแล้วลองใหม่ ไม่เข้าห้องก็แปลคนเดียวได้"
+          }
+        };
+        var uiLang = "zh";
+        function t(k) { return (I18N[uiLang] && I18N[uiLang][k]) || I18N.zh[k] || k; }
+        function applyI18n() {
+          var nodes = document.querySelectorAll("[data-i18n]");
+          for (var i = 0; i < nodes.length; i++) {
+            var key = nodes[i].getAttribute("data-i18n");
+            if (key === "notConn" && connState !== "off") continue;
+            nodes[i].textContent = t(key);
+          }
+          var ph = document.querySelectorAll("[data-i18n-ph]");
+          for (var j = 0; j < ph.length; j++) ph[j].setAttribute("placeholder", t(ph[j].getAttribute("data-i18n-ph")));
+          document.getElementById("uiLangBtn").textContent = uiLang === "zh" ? "ไทย" : "中文";
+          document.documentElement.lang = uiLang === "zh" ? "zh-CN" : "th";
+        }
+        document.getElementById("uiLangBtn").addEventListener("click", function () {
+          uiLang = uiLang === "zh" ? "th" : "zh";
+          applyI18n();
+        });
+
+        /* ============ helpers ============ */
+        function $(id) { return document.getElementById(id); }
+        var feed = $("feed"), liveLine = $("liveLine"), statusLine = $("statusLine");
+        function setStatus(msg, isErr) {
+          statusLine.textContent = msg || "";
+          statusLine.className = "status-line" + (isErr ? " err" : "");
+        }
+        function nowTime() {
+          var d = new Date(), h = d.getHours(), m = d.getMinutes();
+          return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+        }
+
+        /* ============ speech synthesis ============ */
+        var autoSpeak = true, slowSpeak = false;
+        var voices = [];
+        function loadVoices() { try { voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; } catch (e) { voices = []; } }
+        if ("speechSynthesis" in window) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
+        function pickVoice(langPrefix) {
+          for (var i = 0; i < voices.length; i++) {
+            if (voices[i].lang && voices[i].lang.toLowerCase().indexOf(langPrefix) === 0) return voices[i];
+          }
+          return null;
+        }
+        function speak(text, lang) {
+          if (!("speechSynthesis" in window) || !text) return;
+          try {
+            window.speechSynthesis.cancel();
+            var u = new SpeechSynthesisUtterance(text);
+            u.lang = lang === "th" ? "th-TH" : "zh-CN";
+            var v = pickVoice(lang === "th" ? "th" : "zh");
+            if (v) u.voice = v;
+            u.rate = slowSpeak ? 0.72 : 0.95;
+            window.speechSynthesis.speak(u);
+          } catch (e) { /* TTS unavailable: text still on screen */ }
+        }
+
+        /* ============ translation (free public APIs, no key) ============ */
+        function translateMyMemory(text, from, to) {
+          var pair = (from === "zh" ? "zh-CN" : "th") + "|" + (to === "zh" ? "zh-CN" : "th");
+          var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + encodeURIComponent(pair);
+          return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+            var out = j && j.responseData && j.responseData.translatedText;
+            if (out && String(j.responseStatus) === "200") return out;
+            throw new Error("mymemory");
+          });
+        }
+        function translateGoogle(text, from, to) {
+          var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" +
+            (from === "zh" ? "zh-CN" : "th") + "&tl=" + (to === "zh" ? "zh-CN" : "th") +
+            "&dt=t&q=" + encodeURIComponent(text);
+          return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+            if (j && j[0]) {
+              var s = "";
+              for (var i = 0; i < j[0].length; i++) if (j[0][i] && j[0][i][0]) s += j[0][i][0];
+              if (s) return s;
+            }
+            throw new Error("google");
+          });
+        }
+        function translate(text, from, to) {
+          return translateMyMemory(text, from, to).catch(function () {
+            return translateGoogle(text, from, to);
+          });
+        }
+
+        /* ============ conversation feed ============ */
+        var speakerSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a3.5 3.5 0 0 0-2-3.15v6.3a3.5 3.5 0 0 0 2-3.15zm-2-7.6v2.1a5.5 5.5 0 0 1 0 11v2.1a7.5 7.5 0 0 0 0-15.2z"/></svg>';
+        function addMessage(data, mine, pending) {
+          var empty = $("emptyFeed");
+          if (empty) empty.remove();
+          var div = document.createElement("div");
+          div.className = "msg " + (mine ? "mine" : "theirs") + (pending ? " pending" : "");
+          var meta = document.createElement("div");
+          meta.className = "meta";
+          var tag = document.createElement("span");
+          tag.className = "tag " + data.from;
+          tag.textContent = data.from === "zh" ? "中文 → ไทย" : "ไทย → 中文";
+          var who = document.createElement("span");
+          who.textContent = mine ? t("fromMe") : t("fromPeer");
+          var tm = document.createElement("span");
+          tm.textContent = nowTime();
+          meta.appendChild(tag); meta.appendChild(who); meta.appendChild(tm);
+          var orig = document.createElement("div");
+          orig.className = "orig"; orig.textContent = data.original;
+          var tran = document.createElement("div");
+          tran.className = "tran"; tran.textContent = data.translation || "…";
+          var btn = document.createElement("button");
+          btn.type = "button"; btn.className = "replay";
+          btn.setAttribute("aria-label", "replay");
+          btn.innerHTML = speakerSVG;
+          btn.addEventListener("click", function () {
+            speak(data.translation, data.to);
+          });
+          div.appendChild(meta); div.appendChild(orig); div.appendChild(tran); div.appendChild(btn);
+          feed.appendChild(div);
+          div.scrollIntoView({ behavior: "smooth", block: "end" });
+          return div;
+        }
+        $("clearBtn").addEventListener("click", function () {
+          feed.innerHTML = "";
+          var empty = document.createElement("div");
+          empty.className = "empty"; empty.id = "emptyFeed";
+          empty.textContent = t("emptyFeed");
+          feed.appendChild(empty);
+        });
+
+        /* ============ utterance pipeline ============ */
+        function handleUtterance(text, from) {
+          text = (text || "").trim();
+          if (!text) { setStatus(t("noResult"), true); return; }
+          var to = from === "zh" ? "th" : "zh";
+          setStatus(t("translating"));
+          var bubble = addMessage({ from: from, to: to, original: text, translation: "" }, true, true);
+          translate(text, from, to).then(function (translated) {
+            bubble.classList.remove("pending");
+            bubble.querySelector(".tran").textContent = translated;
+            var payload = { type: "msg", from: from, to: to, original: text, translation: translated };
+            var replayBtn = bubble.querySelector(".replay");
+            replayBtn.onclick = function () { speak(translated, to); };
+            if (autoSpeak) speak(translated, to);
+            sendToPeer(payload);
+            setStatus("");
+          }).catch(function () {
+            bubble.classList.remove("pending");
+            bubble.querySelector(".tran").textContent = "—";
+            setStatus(t("translateFail"), true);
+          });
+        }
+
+        /* ============ speech recognition ============ */
+        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        var recog = null, listeningLang = null;
+        function stopListening() {
+          if (recog) { try { recog.stop(); } catch (e) {} }
+          listeningLang = null;
+          $("micZh").classList.remove("listening");
+          $("micTh").classList.remove("listening");
+        }
+        function startListening(lang) {
+          if (listeningLang) { stopListening(); return; }
+          if (!SR) { setStatus(t("noSpeechSupport"), true); return; }
+          if ("speechSynthesis" in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+          recog = new SR();
+          recog.lang = lang === "zh" ? "zh-CN" : "th-TH";
+          recog.interimResults = true;
+          recog.continuous = false;
+          recog.maxAlternatives = 1;
+          listeningLang = lang;
+          $(lang === "zh" ? "micZh" : "micTh").classList.add("listening");
+          setStatus(lang === "zh" ? t("listeningZh") : t("listeningTh"));
+          liveLine.textContent = "";
+          liveLine.classList.add("active");
+          var finalText = "";
+          recog.onresult = function (ev) {
+            var interim = "";
+            for (var i = ev.resultIndex; i < ev.results.length; i++) {
+              if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript;
+              else interim += ev.results[i][0].transcript;
+            }
+            liveLine.textContent = finalText + interim;
+          };
+          recog.onerror = function (ev) {
+            stopListening();
+            liveLine.classList.remove("active");
+            if (ev.error === "not-allowed" || ev.error === "service-not-allowed") setStatus(t("micDenied"), true);
+            else if (ev.error === "no-speech") setStatus(t("noResult"), true);
+            else setStatus(t("noResult"), true);
+          };
+          recog.onend = function () {
+            var said = finalText.trim();
+            stopListening();
+            liveLine.classList.remove("active");
+            if (said) { liveLine.textContent = said; handleUtterance(said, lang); }
+          };
+          try { recog.start(); } catch (e) { stopListening(); setStatus(t("noSpeechSupport"), true); }
+        }
+        $("micZh").addEventListener("click", function () { startListening("zh"); });
+        $("micTh").addEventListener("click", function () { startListening("th"); });
+        if (!SR) setStatus(t("noSpeechSupport"), true);
+
+        /* ============ typed fallback ============ */
+        function sendTyped() {
+          var v = $("typeInput").value.trim();
+          if (!v) return;
+          $("typeInput").value = "";
+          handleUtterance(v, $("typeLang").value);
+        }
+        $("typeSend").addEventListener("click", sendTyped);
+        $("typeInput").addEventListener("keydown", function (e) { if (e.key === "Enter") sendTyped(); });
+
+        /* ============ toggles ============ */
+        $("autoSpeakToggle").addEventListener("click", function () {
+          autoSpeak = !autoSpeak;
+          this.setAttribute("aria-pressed", autoSpeak ? "true" : "false");
+        });
+        $("slowToggle").addEventListener("click", function () {
+          slowSpeak = !slowSpeak;
+          this.setAttribute("aria-pressed", slowSpeak ? "true" : "false");
+        });
+
+        /* ============ peer connection (PeerJS public broker, P2P data) ============ */
+        var PREFIX = "lingbao-fanyi-v1-";
+        var peer = null, conn = null, connState = "off"; // off | wait | on
+        function setConn(state, msgKey) {
+          connState = state;
+          var dot = $("connDot"), txt = $("connText");
+          dot.className = "dot" + (state === "on" ? " on" : state === "wait" ? " wait" : "");
+          txt.textContent = msgKey ? t(msgKey) : t("notConn");
+          txt.removeAttribute("data-i18n");
+        }
+        function sendToPeer(payload) {
+          if (conn && conn.open) { try { conn.send(payload); } catch (e) {} }
+        }
+        function wireConn(c) {
+          conn = c;
+          c.on("open", function () { setConn("on", "connected"); });
+          c.on("data", function (data) {
+            if (!data || data.type !== "msg") return;
+            addMessage(data, false, false);
+            if (autoSpeak) speak(data.translation, data.to);
+          });
+          c.on("close", function () { conn = null; setConn("off", "connLost"); });
+          c.on("error", function () { setConn("off", "connFail"); });
+        }
+        function destroyPeer() { if (peer) { try { peer.destroy(); } catch (e) {} peer = null; conn = null; } }
+
+        $("createBtn").addEventListener("click", function () {
+          if (typeof Peer === "undefined") { setStatus(t("netNeeded"), true); return; }
+          destroyPeer();
+          var code = String(Math.floor(100000 + Math.random() * 900000));
+          setConn("wait", "connecting");
+          peer = new Peer(PREFIX + code);
+          peer.on("open", function () {
+            $("codeText").textContent = code;
+            $("codeDisplay").style.display = "block";
+            setConn("wait", "waitingPeer");
+          });
+          peer.on("connection", function (c) { wireConn(c); });
+          peer.on("error", function (err) {
+            if (err && err.type === "unavailable-id") setConn("off", "connFail");
+            else setConn("off", "connFail");
+          });
+          peer.on("disconnected", function () { setConn("off", "connLost"); });
+        });
+
+        $("joinBtn").addEventListener("click", function () {
+          if (typeof Peer === "undefined") { setStatus(t("netNeeded"), true); return; }
+          var code = $("joinInput").value.replace(/\D/g, "");
+          if (code.length !== 6) { setStatus(t("enterCode"), true); return; }
+          destroyPeer();
+          setConn("wait", "connecting");
+          peer = new Peer();
+          peer.on("open", function () {
+            var c = peer.connect(PREFIX + code, { reliable: true });
+            wireConn(c);
+            var tries = 0;
+            var timer = setInterval(function () {
+              tries++;
+              if (conn && conn.open) { clearInterval(timer); return; }
+              if (tries > 10) { clearInterval(timer); if (connState !== "on") setConn("off", "badCode"); }
+            }, 700);
+          });
+          peer.on("error", function (err) {
+            if (err && err.type === "peer-unavailable") setConn("off", "badCode");
+            else setConn("off", "connFail");
+          });
+        });
+
+        applyI18n();
+      })();
+    </script>
+  </body>
+</html>
