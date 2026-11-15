@@ -421,7 +421,9 @@
             openingMic: "正在打开麦克风…",
             diagTitle: "语音诊断（点麦克风后看这里：识别的每一步和返回的错误码都会写在这里，不会再静默失败）",
             spDeadTitle: "⚠ 语音识别启动了，但一直没返回文字，已停下",
-            spDeadBody: "麦克风权限和识别启动都正常，但识别服务没有把任何文字返回来，具体返回情况看下面诊断信息。安卓 Chrome 的网页语音识别靠手机系统的语音服务干活，它的联网不走网页这条路：代理开分流/规则模式时，这部分流量可能被直连绕过、在国内一直超时；系统语音服务没启用时也会这样。这不是没开代理、也不是没登录谷歌账号。先把代理切到「全局模式」再点麦克风重试；还不行就用下面的键盘语音输入——那是手机系统自己的输入，不依赖这个识别服务。"
+            spDeadBody: "麦克风权限和识别启动都正常，但识别服务没有把任何文字返回来，具体返回情况看下面诊断信息。安卓 Chrome 的网页语音识别靠手机系统的语音服务干活，它的联网不走网页这条路：代理开分流/规则模式时，这部分流量可能被直连绕过、在国内一直超时；系统语音服务没启用时也会这样。这不是没开代理、也不是没登录谷歌账号。先把代理切到「全局模式」再点麦克风重试；还不行就用下面的键盘语音输入——那是手机系统自己的输入，不依赖这个识别服务。",
+            spAbortTitle: "⚠ 识别会话被系统 / 浏览器中止（aborted），已停下",
+            spAbortBody: "诊断已确认：这次 aborted 不是页面自己结束会话造成的（页面主动结束的会话不会报这个错），是手机系统的语音服务或浏览器把识别会话中途掐断了，连续 3 次都这样才停下。常见原因：系统语音服务被其他应用抢占麦克风、语音服务进程被系统杀掉、或它的联网被分流绕过后超时断开。先关掉其他用麦克风的应用，把代理切到「全局模式」再点麦克风重试；还不行就用下面的键盘语音输入——那是手机系统自己的输入，不走这个识别会话。"
           },
           th: {
             titleA: "จีน", titleB: "ไทย", titleC: "แปลเรียลไทม์",
@@ -493,6 +495,8 @@
             recheckStill: "ตรวจใหม่แล้ว: ยังไม่มีอินเทอร์เฟซรู้จำเสียงที่ใช้ได้ เบราว์เซอร์นี้ไม่รองรับจริง ๆ ให้พูดด้วยวิธีในป้ายเตือน",
             openingMic: "กำลังเปิดไมโครโฟน…",
             diagTitle: "ข้อมูลวินิจฉัยเสียง (หลังกดไมค์ดูตรงนี้: ทุกขั้นตอนและรหัสข้อผิดพลาดของการรู้จำจะแสดงที่นี่ จะไม่เงียบหายอีก)",
+            spAbortTitle: "⚠ เซสชันรู้จำเสียงถูกระบบ / เบราว์เซอร์ตัดกลางคัน (aborted) หยุดแล้ว",
+            spAbortBody: "ข้อมูลวินิจฉัยยืนยันแล้ว: aborted ครั้งนี้ไม่ได้เกิดจากหน้านี้จบเซสชันเอง (เซสชันที่หน้านี้จบเองจะไม่รายงานข้อผิดพลาดนี้) แต่บริการเสียงของระบบมือถือหรือเบราว์เซอร์ตัดเซสชันกลางคัน และเป็นแบบนี้ 3 ครั้งติดกันจึงหยุด สาเหตุที่พบบ่อย: แอปอื่นแย่งไมโครโฟน บริการเสียงถูกระบบปิด หรือการเชื่อมต่อของมันถูกแยกเส้นทางจนหมดเวลา ให้ปิดแอปอื่นที่ใช้ไมค์ เปลี่ยนพร็อกซีเป็นโหมด Global แล้วกดไมค์ลองใหม่ ถ้ายังไม่ได้ ให้ใช้การพิมพ์ด้วยเสียงบนแป้นพิมพ์ด้านล่าง ซึ่งไม่ต้องพึ่งเซสชันนี้",
             spDeadTitle: "⚠ การรู้จำเสียงเริ่มแล้ว แต่ไม่มีข้อความกลับมาเลย หยุดแล้ว",
             spDeadBody: "สิทธิ์ไมค์และการเริ่มรู้จำปกติ แต่บริการรู้จำไม่ส่งข้อความกลับมาเลย ดูรายละเอียดในข้อมูลวินิจฉัยด้านล่าง การรู้จำเสียงบนเว็บของ Chrome Android ใช้บริการเสียงของระบบมือถือ การเชื่อมต่อของมันไม่ได้ไปทางเดียวกับหน้าเว็บ: ถ้าพร็อกซีเป็นโหมดแยกเส้นทาง/กฎ การเชื่อมต่อส่วนนี้อาจถูกส่งตรงและหมดเวลาในจีน หรือถ้าบริการเสียงของระบบไม่ได้เปิดก็เป็นแบบนี้ ไม่ใช่เพราะไม่ได้เปิดพร็อกซีหรือไม่ได้ล็อกอิน Google ให้ลองเปลี่ยนพร็อกซีเป็นโหมด Global แล้วกดไมค์ใหม่ ถ้ายังไม่ได้ ให้ใช้การพิมพ์ด้วยเสียงบนแป้นพิมพ์ด้านล่าง ซึ่งเป็นระบบของมือถือเอง ไม่พึ่งบริการนี้"
           }
@@ -725,6 +729,8 @@
         var sessionsStarted = 0;   // recognition sessions started in this listening run
         var totalResults = 0;      // results received in this listening run
         var lastErrorInfo = "—";   // last recognizer error code, verbatim
+        var externalAborts = 0;    // consecutive "aborted" errors NOT caused by this page
+        var selfEndReason = null;  // why THIS page ended the live session ("watchdog-nostart" / "user-stop"), if it did
         var restartTimer = null;
         var uaStr = navigator.userAgent || "";
         var isIOS = /iP(hone|ad|od)/.test(uaStr) ||
@@ -756,6 +762,32 @@
             "error=" + lastErrorInfo + " · sessions=" + sessionsStarted + " · results=" + totalResults;
           if (extra) s += " · " + extra;
           return s;
+        }
+        /* ---------- who aborted the session? ----------
+           "aborted" is not a recognition failure on its own: it is the
+           error a recognizer reports AFTER somebody calls abort() on it.
+           In the old build the only abort() callers were this page itself
+           — the 8s no-result watchdog, the 3.5s no-start watchdog and the
+           stop button — so the watchdog would kill a healthy-but-slow
+           session (a pause before speaking, a slow system speech service)
+           and then report the "aborted" its own kill had produced as if
+           the recognition service had failed. That is the exact error the
+           user kept seeing on Android Chrome. Rules from now on:
+           - watchdogs NEVER call abort(); they end a hung session with
+             stop(), which delivers any pending result and fires onend
+             WITHOUT an "aborted" error;
+           - the one remaining abort() path (user taps stop) tags
+             selfEndReason BEFORE aborting, and onerror treats an
+             "aborted" carrying that tag as the expected echo of our own
+             action: it is not logged as an error, never overwrites
+             lastErrorInfo, and never reaches the alert card;
+           - an "aborted" with NO tag therefore really came from outside
+             (system speech service / browser tore the session down) and
+             is the only kind counted and reported as an abort. */
+        function abortSessionSelf(reason, target) {
+          selfEndReason = reason;
+          diagLog("页面主动结束识别会话（" + reason + "）：随后出现的 aborted 是这一步的预期回声，不是识别错误，不会上报");
+          try { target.abort(); } catch (e) {}
         }
 
         /* ---------- speech support alert card ---------- */
@@ -866,11 +898,37 @@
             var lastInterim = "";       // latest interim text, rescued on end
             var sessionError = null;    // fatal error seen this session
             var started = false;
-            var sessionTimedOut = false; // started, but 8s with no result and no end
+            var sessionTimedOut = false; // started, but a long stretch with no result and no end
             var sessionDone = false;     // end handling already ran (guard)
             var sessionWatchdog = null;  // no-result watchdog timer
             var endFallback = null;      // forces end handling if onend never fires
+            var sessionSelfAborted = false;   // the "aborted" was the echo of this page's own abort()
+            var sessionExternalAbort = false; // the "aborted" came from the system / browser
+            var heardActivity = false;   // recognizer reported audio / speech this session
+            // No-result watchdog: a session that starts but returns nothing
+            // and never ends is ended with stop() — NEVER abort(). abort()
+            // makes the recognizer fire an "aborted" error, which is how
+            // the old watchdog manufactured the very error it then
+            // reported. stop() delivers any pending result and ends via
+            // onend with no error attached. The window is 15s of TOTAL
+            // inactivity (the old 8s fired while the user was still
+            // pausing or speaking slowly), and any audio / speech activity
+            // reported by the recognizer re-arms it, so a session that is
+            // hearing the user is never killed by the clock.
+            var armResultWatchdog = function () {
+              if (sessionWatchdog) clearTimeout(sessionWatchdog);
+              sessionWatchdog = setTimeout(function () {
+                sessionWatchdog = null;
+                if (recog === r && recogActive && !sessionHeard && !sessionDone && wantListen && !holdListen) {
+                  sessionTimedOut = true;
+                  diagLog("会话已启动但 15 秒没有任何识别返回，页面用 stop() 收尾（不用 abort，不会产生 aborted 错误）");
+                  try { r.stop(); } catch (e) {}
+                  endFallback = setTimeout(function () { handleSessionEnd(); }, 1200);
+                }
+              }, 15000);
+            };
             sessionsStarted++;
+            selfEndReason = null; // a stale self-end tag must never excuse a later real abort
             diagLog("第 " + sessionsStarted + " 次识别会话创建（" + (listenLang === "zh" ? "zh-CN" : "th-TH") + "）");
             r.lang = listenLang === "zh" ? "zh-CN" : "th-TH";
             r.interimResults = true;
@@ -880,6 +938,17 @@
             try { r.continuous = false; } catch (e) {}
             r.maxAlternatives = 1;
             r.onstart = function () { started = true; startFails = 0; diagLog("识别会话已启动，开始听…"); };
+            // any sign the recognizer is actually hearing the user re-arms
+            // the no-result watchdog: the clock only kills a session that
+            // has produced literally nothing — no audio, no speech, no text
+            var noteActivity = function (what) {
+              if (!heardActivity) diagLog("识别会话有动静了（" + what + "），看门狗计时重新算");
+              heardActivity = true;
+              if (!sessionHeard) armResultWatchdog();
+            };
+            r.onaudiostart = function () { noteActivity("已开始收音"); };
+            r.onsoundstart = function () { noteActivity("检测到声音"); };
+            r.onspeechstart = function () { noteActivity("检测到说话"); };
             r.onresult = function (ev) {
               var finalText = "", interim = "";
               for (var i = ev.resultIndex; i < ev.results.length; i++) {
@@ -889,6 +958,7 @@
               if ((finalText + interim).trim()) {
                 if (!sessionHeard) {
                   totalResults++;
+                  externalAborts = 0; // a session that returns text clears the external-abort count
                   diagLog("识别有返回了（第 " + sessionsStarted + " 次会话）");
                   if (sessionWatchdog) { clearTimeout(sessionWatchdog); sessionWatchdog = null; }
                 }
@@ -910,9 +980,28 @@
             };
             r.onerror = function (ev) {
               var err = (ev && ev.error) || "unknown";
-              // never swallow an error again: every code the recognizer
-              // returns is written to the on-page diagnostics and kept,
-              // verbatim, for the alert card
+              if (err === "aborted") {
+                if (selfEndReason || sessionDone) {
+                  // OUR abort (stop button): the recognizer is only echoing
+                  // our own abort() back at us. Not an error: do not log it
+                  // as one, do not let it overwrite lastErrorInfo, do not
+                  // let it anywhere near the alert card.
+                  sessionSelfAborted = true;
+                  diagLog("收到 aborted，但这是页面自己结束会话（" + (selfEndReason || "已收尾") + "）的回声，已忽略，不算识别错误");
+                  return;
+                }
+                // No tag: the system speech service or the browser tore
+                // this session down on its own. That is the only real
+                // "aborted" — record it as such and let the end handling
+                // retry before blaming anyone.
+                sessionExternalAbort = true;
+                lastErrorInfo = "aborted（来自系统/浏览器，不是页面看门狗）";
+                diagLog("识别返回错误：aborted（来源：系统语音服务/浏览器，不是页面自己结束的）");
+                return;
+              }
+              // never swallow an error again: every other code the
+              // recognizer returns is written to the on-page diagnostics
+              // and kept, verbatim, for the alert card
               lastErrorInfo = err;
               diagLog("识别返回错误：" + err);
               if (err === "not-allowed") {
@@ -928,10 +1017,10 @@
                 sessionError = "capture";
               } else if (err === "language-not-supported") {
                 sessionError = "language";
-              } else if (err !== "no-speech" && err !== "aborted") {
+              } else if (err !== "no-speech") {
                 sessionError = "other";
               }
-              // "no-speech" / "aborted": the end handling below decides
+              // "no-speech": the end handling below decides
             };
             var handleSessionEnd = function () {
               if (sessionDone) return;
@@ -940,8 +1029,24 @@
               if (endFallback) { clearTimeout(endFallback); endFallback = null; }
               recogActive = false;
               if (recog === r) recog = null;
+              selfEndReason = null; // this session's self-end tag is consumed here
               if (!wantListen) { setMicUI(); return; }
               var detail = recogDetail();
+              if (sessionExternalAbort && !submitted) {
+                // the system / browser tore the session down — a warm-up
+                // abort on the first session is common on Android, so
+                // retry quietly; only a run of them is a real failure,
+                // and when it is reported it is reported as what it is:
+                // an external abort, never a watchdog artifact
+                externalAborts++;
+                if (externalAborts >= 3) {
+                  failListening("spAbortTitle", "spAbortBody", "noResult", recogDetail("连续 " + externalAborts + " 次会话被系统/浏览器中止（aborted）"));
+                  return;
+                }
+                diagLog("会话被系统/浏览器中止（第 " + externalAborts + " 次），自动重新开始识别…");
+                if (!holdListen) scheduleStart(700);
+                return;
+              }
               if (sessionError === "denied") { failListening("spDeniedTitle", "spDeniedBody", "micDenied", detail); return; }
               if (sessionError === "service") { failListening("spDeadTitle", "spDeadBody", "noSpeechSupport", detail); return; }
               if (sessionError === "network") { failListening("spNetTitle", "spNetBody", "recogNet", detail); return; }
@@ -970,9 +1075,9 @@
                   // Chrome. When nothing has EVER been recognized in this
                   // run, one hung session is already diagnostic: stop and
                   // put the reason on the alert card instead of looping
-                  diagLog("会话无响应：已启动但 8 秒内没有任何识别返回");
+                  diagLog("会话无响应：已启动但 15 秒内没有任何识别返回（页面用 stop() 收的尾，没有 abort 它）");
                   if (totalResults === 0) {
-                    failListening("spDeadTitle", "spDeadBody", "noResult", recogDetail("会话启动后 8 秒无任何返回"));
+                    failListening("spDeadTitle", "spDeadBody", "noResult", recogDetail("会话启动后 15 秒无任何返回，error=" + lastErrorInfo));
                     return;
                   }
                 }
@@ -1005,30 +1110,26 @@
             }
             // a session whose onstart never arrives (stock browsers can
             // accept start() and then do nothing at all) must not look like
-            // listening forever — and if abort() never produces onend
+            // listening forever — and if stop() never produces onend
             // either, force the end handling: the old build could wedge
             // with recogActive stuck true, which silently blocked every
             // later session and made the mic look permanently dead
             setTimeout(function () {
               if (recog === r && recogActive && !started && wantListen && !holdListen && !sessionDone) {
-                diagLog("识别会话 3.5 秒都没有启动成功");
-                try { r.abort(); } catch (e) {}
+                diagLog("识别会话 3.5 秒都没有启动成功，页面用 stop() 收尾（不用 abort，不会产生 aborted 错误）");
+                sessionTimedOut = true;
+                try { r.stop(); } catch (e) {}
                 endFallback = setTimeout(function () { handleSessionEnd(); }, 1200);
               }
             }, 3500);
             // a session that starts but then returns nothing and never
             // ends — the Android Chrome silent hang (recognition service
             // unreachable, e.g. its traffic split-routed around the
-            // proxy): give it 8 seconds, then abort and let the end
-            // handling put the reason on the alert card
-            sessionWatchdog = setTimeout(function () {
-              sessionWatchdog = null;
-              if (recog === r && recogActive && !sessionHeard && !sessionDone && wantListen && !holdListen) {
-                sessionTimedOut = true;
-                try { r.abort(); } catch (e) {}
-                endFallback = setTimeout(function () { handleSessionEnd(); }, 1200);
-              }
-            }, 8000);
+            // proxy): the no-result watchdog above ends it with stop()
+            // after 15s of total inactivity. It used to abort() after 8s
+            // and then report the resulting "aborted" as the failure —
+            // the watchdog was both the killer and the witness.
+            armResultWatchdog();
           }, 250);
         }
         function resumeListening() {
@@ -1048,7 +1149,7 @@
           wantListen = false;
           holdListen = false;
           if (restartTimer) { clearTimeout(restartTimer); restartTimer = null; }
-          if (recog) { try { recog.abort(); } catch (e) {} recog = null; }
+          if (recog) { var live = recog; recog = null; abortSessionSelf("用户点按钮停止聆听", live); }
           recogActive = false;
           setMicUI();
         }
@@ -1058,6 +1159,7 @@
           holdListen = false;
           startFails = 0;
           emptySessions = 0;
+          externalAborts = 0;
           sessionsStarted = 0;
           totalResults = 0;
           lastErrorInfo = "—";
