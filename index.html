@@ -171,6 +171,20 @@
       .speech-alert-actions .btn { width: auto; flex: 1 1 180px; background: var(--zh); color: #fff; }
       .speech-alert-actions .btn.ghost { background: transparent; color: var(--ink); flex: 0 1 auto; }
       .mic-btn.unsupported { opacity: .55; filter: grayscale(.35); }
+      .speech-alert-detail { font-weight: 700; font-size: 13.5px; word-break: break-word; }
+
+      /* ---------- speech diagnostics ---------- */
+      .diag {
+        margin-top: 12px; border: 1.5px dashed var(--line); border-radius: 12px;
+        padding: 10px 12px; text-align: left;
+      }
+      .diag-title { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+      .diag-log {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12.5px; line-height: 1.5; color: var(--ink-soft);
+        white-space: pre-wrap; word-break: break-word;
+        max-height: 132px; overflow-y: auto;
+      }
 
       .type-row { display: flex; gap: 8px; margin-top: 12px; }
       .type-row input {
@@ -264,11 +278,17 @@
         </div>
         <div class="live-line" id="liveLine"></div>
         <div class="status-line" id="statusLine"></div>
+        <div class="diag" id="diagBox">
+          <div class="diag-title" data-i18n="diagTitle">语音诊断（点麦克风后看这里：识别的每一步和返回的错误码都会写在这里，不会再静默失败）</div>
+          <div class="diag-log" id="diagLog"></div>
+        </div>
         <div class="speech-alert" id="speechAlert" role="alert" hidden>
           <strong id="speechAlertTitle"></strong>
           <p id="speechAlertBody"></p>
+          <p class="speech-alert-detail" id="speechAlertDetail" hidden></p>
           <ul>
-            <li data-i18n="alt1">办法一（最推荐）：换 Chrome 或 Edge 打开这个页面再点麦克风——在浏览器菜单里找「在其他浏览器中打开」，或把网址复制到 Chrome 里打开。安卓自带浏览器大多没有网页语音识别，Chrome / Edge 才有。</li>
+            <li data-i18n="altProxy">先查代理分流（你已经开代理时最常见）：安卓 Chrome 的网页语音识别是把声音交给手机系统的语音服务去识别的，它的流量不跟网页走同一条路。代理开「规则 / 分流」模式时，这部分流量可能被直连绕过，在国内连不上就一直没结果——把代理切到「全局模式」，再点一次麦克风试试；同时确认手机的「默认语音输入 / 语音服务」是可用的。切全局后还不行，就用办法二。</li>
+            <li data-i18n="alt1">办法一：在 Chrome 里、代理切「全局模式」后重新点麦克风试一次；还不行就换 Edge 打开这个页面再点麦克风。不要用安卓自带浏览器打开——它们大多没有网页语音识别。</li>
             <li data-i18n="alt2">办法二（不用换浏览器）：用下面的打字框，点一下输入框，再点手机键盘上的麦克风图标说话——那是手机系统自己的语音输入，不经过浏览器，文字进框后点「发送」照样翻译并读出来。</li>
             <li data-i18n="alt3">办法三：直接打字发送，翻译和朗读都不受影响。</li>
           </ul>
@@ -379,7 +399,8 @@
             netNeeded: "连线组件没加载成功（可能没联网），刷新页面重试；不连房间也能单独翻译",
             recogNet: "语音识别连不上网，检查网络后重试",
             audioCapture: "麦克风不可用，可能被其他应用占用了，关掉后重试",
-            alt1: "办法一（最推荐）：换 Chrome 或 Edge 打开这个页面再点麦克风——在浏览器菜单里找「在其他浏览器中打开」，或把网址复制到 Chrome 里打开。安卓自带浏览器大多没有网页语音识别，Chrome / Edge 才有。",
+            altProxy: "先查代理分流（你已经开代理时最常见）：安卓 Chrome 的网页语音识别是把声音交给手机系统的语音服务去识别的，它的流量不跟网页走同一条路。代理开「规则 / 分流」模式时，这部分流量可能被直连绕过，在国内连不上就一直没结果——把代理切到「全局模式」，再点一次麦克风试试；同时确认手机的「默认语音输入 / 语音服务」是可用的。切全局后还不行，就用办法二。",
+            alt1: "办法一：在 Chrome 里、代理切「全局模式」后重新点麦克风试一次；还不行就换 Edge 打开这个页面再点麦克风。不要用安卓自带浏览器打开——它们大多没有网页语音识别。",
             alt2: "办法二（不用换浏览器）：用下面的打字框，点一下输入框，再点手机键盘上的麦克风图标说话——那是手机系统自己的语音输入，不经过浏览器，文字进框后点「发送」照样翻译并读出来。",
             alt3: "办法三：直接打字发送，翻译和朗读都不受影响。",
             kbVoiceBtn: "用手机键盘的语音输入", recheckBtn: "重新检测",
@@ -397,7 +418,10 @@
             spDeniedBody: "浏览器没拿到麦克风权限，识别没法开始。去浏览器设置里把这个网站的麦克风改成「允许」，或在系统设置里给浏览器开麦克风权限，再回来点麦克风；不想改权限就按下面办法说话。",
             recheckOk: "重新检测：这个浏览器有语音识别接口，点上面的麦克风，说一句短句试试",
             recheckStill: "重新检测了：还是没有可用的语音识别接口，这个浏览器确实不支持，请按提示牌里的办法说话",
-            openingMic: "正在打开麦克风…"
+            openingMic: "正在打开麦克风…",
+            diagTitle: "语音诊断（点麦克风后看这里：识别的每一步和返回的错误码都会写在这里，不会再静默失败）",
+            spDeadTitle: "⚠ 语音识别启动了，但一直没返回文字，已停下",
+            spDeadBody: "麦克风权限和识别启动都正常，但识别服务没有把任何文字返回来，具体返回情况看下面诊断信息。安卓 Chrome 的网页语音识别靠手机系统的语音服务干活，它的联网不走网页这条路：代理开分流/规则模式时，这部分流量可能被直连绕过、在国内一直超时；系统语音服务没启用时也会这样。这不是没开代理、也不是没登录谷歌账号。先把代理切到「全局模式」再点麦克风重试；还不行就用下面的键盘语音输入——那是手机系统自己的输入，不依赖这个识别服务。"
           },
           th: {
             titleA: "จีน", titleB: "ไทย", titleC: "แปลเรียลไทม์",
@@ -448,7 +472,8 @@
             netNeeded: "โหลดตัวเชื่อมต่อไม่สำเร็จ (อาจไม่มีเน็ต) รีเฟรชแล้วลองใหม่ ไม่เข้าห้องก็แปลคนเดียวได้",
             recogNet: "การรู้จำเสียงเชื่อมต่อเครือข่ายไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่",
             audioCapture: "ใช้ไมโครโฟนไม่ได้ อาจมีแอปอื่นใช้ไมค์อยู่ ปิดแอปนั้นแล้วลองใหม่",
-            alt1: "วิธีที่ 1 (แนะนำที่สุด): เปิดหน้านี้ใน Chrome หรือ Edge แล้วค่อยกดไมค์ — หาเมนู «เปิดในเบราว์เซอร์อื่น» ในเบราว์เซอร์ หรือคัดลอกที่อยู่เว็บไปเปิดใน Chrome เบราว์เซอร์ที่มากับเครื่อง Android ส่วนใหญ่ไม่มีการรู้จำเสียงบนเว็บ มีเฉพาะ Chrome / Edge",
+            altProxy: "ตรวจการแยกเส้นทางของพร็อกซี (พบบ่อยที่สุดเมื่อเปิดพร็อกซีอยู่แล้ว): การรู้จำเสียงบนเว็บของ Chrome Android ส่งเสียงไปให้ระบบรู้จำเสียงของมือถือ การเชื่อมต่อของมันไม่ได้ไปทางเดียวกับหน้าเว็บ ถ้าพร็อกซีเป็นโหมดกฎ/แยกเส้นทาง การเชื่อมต่อส่วนนี้อาจถูกส่งตรงและเชื่อมต่อไม่ได้ในจีน ให้เปลี่ยนพร็อกซีเป็นโหมด Global แล้วกดไมค์ลองอีกครั้ง และตรวจว่า «การป้อนด้วยเสียงเริ่มต้น / บริการเสียง» ของเครื่องใช้ได้ ถ้ายังไม่ได้ ให้ใช้วิธีที่ 2",
+            alt1: "วิธีที่ 1: ใน Chrome ให้เปลี่ยนพร็อกซีเป็นโหมด Global แล้วกดไมค์ลองอีกครั้ง ถ้ายังไม่ได้ ให้เปิดหน้านี้ใน Edge แล้วกดไมค์ อย่าใช้เบราว์เซอร์ที่มากับเครื่อง Android เพราะส่วนใหญ่ไม่มีการรู้จำเสียงบนเว็บ",
             alt2: "วิธีที่ 2 (ไม่ต้องเปลี่ยนเบราว์เซอร์): ใช้ช่องพิมพ์ด้านล่าง แตะช่องพิมพ์ แล้วแตะไอคอนไมค์บนแป้นพิมพ์มือถือเพื่อพูด — นั่นคือการพิมพ์ด้วยเสียงของระบบมือถือเอง ไม่ผ่านเบราว์เซอร์ ข้อความเข้าช่องแล้วกด «ส่ง» ก็แปลและอ่านออกเสียงได้เหมือนกัน",
             alt3: "วิธีที่ 3: พิมพ์แล้วส่งตรง ๆ การแปลและการอ่านออกเสียงไม่กระทบ",
             kbVoiceBtn: "ใช้การพิมพ์ด้วยเสียงบนแป้นพิมพ์", recheckBtn: "ตรวจอีกครั้ง",
@@ -466,7 +491,10 @@
             spDeniedBody: "เบราว์เซอร์ไม่ได้รับสิทธิ์ใช้ไมค์ การรู้จำจึงเริ่มไม่ได้ ไปตั้งค่าเบราว์เซอร์เปลี่ยนสิทธิ์ไมค์ของเว็บนี้เป็น «อนุญาต» หรือเปิดสิทธิ์ไมค์ให้เบราว์เซอร์ในการตั้งค่าระบบ แล้วกลับมากดไมค์ ถ้าไม่อยากแก้สิทธิ์ ให้ใช้วิธีด้านล่าง",
             recheckOk: "ตรวจใหม่แล้ว: เบราว์เซอร์นี้มีอินเทอร์เฟซรู้จำเสียง กดไมค์ด้านบนแล้วลองพูดประโยคสั้น ๆ",
             recheckStill: "ตรวจใหม่แล้ว: ยังไม่มีอินเทอร์เฟซรู้จำเสียงที่ใช้ได้ เบราว์เซอร์นี้ไม่รองรับจริง ๆ ให้พูดด้วยวิธีในป้ายเตือน",
-            openingMic: "กำลังเปิดไมโครโฟน…"
+            openingMic: "กำลังเปิดไมโครโฟน…",
+            diagTitle: "ข้อมูลวินิจฉัยเสียง (หลังกดไมค์ดูตรงนี้: ทุกขั้นตอนและรหัสข้อผิดพลาดของการรู้จำจะแสดงที่นี่ จะไม่เงียบหายอีก)",
+            spDeadTitle: "⚠ การรู้จำเสียงเริ่มแล้ว แต่ไม่มีข้อความกลับมาเลย หยุดแล้ว",
+            spDeadBody: "สิทธิ์ไมค์และการเริ่มรู้จำปกติ แต่บริการรู้จำไม่ส่งข้อความกลับมาเลย ดูรายละเอียดในข้อมูลวินิจฉัยด้านล่าง การรู้จำเสียงบนเว็บของ Chrome Android ใช้บริการเสียงของระบบมือถือ การเชื่อมต่อของมันไม่ได้ไปทางเดียวกับหน้าเว็บ: ถ้าพร็อกซีเป็นโหมดแยกเส้นทาง/กฎ การเชื่อมต่อส่วนนี้อาจถูกส่งตรงและหมดเวลาในจีน หรือถ้าบริการเสียงของระบบไม่ได้เปิดก็เป็นแบบนี้ ไม่ใช่เพราะไม่ได้เปิดพร็อกซีหรือไม่ได้ล็อกอิน Google ให้ลองเปลี่ยนพร็อกซีเป็นโหมด Global แล้วกดไมค์ใหม่ ถ้ายังไม่ได้ ให้ใช้การพิมพ์ด้วยเสียงบนแป้นพิมพ์ด้านล่าง ซึ่งเป็นระบบของมือถือเอง ไม่พึ่งบริการนี้"
           }
         };
         var uiLang = "zh";
@@ -694,6 +722,9 @@
         var recogStarting = false; // a session start is already scheduled
         var startFails = 0;        // consecutive failed session starts
         var emptySessions = 0;     // consecutive sessions with no text at all
+        var sessionsStarted = 0;   // recognition sessions started in this listening run
+        var totalResults = 0;      // results received in this listening run
+        var lastErrorInfo = "—";   // last recognizer error code, verbatim
         var restartTimer = null;
         var uaStr = navigator.userAgent || "";
         var isIOS = /iP(hone|ad|od)/.test(uaStr) ||
@@ -704,14 +735,42 @@
         var isVivoBrowser = /VivoBrowser|iQOO|vivo/i.test(uaStr);
         var isStockAndroid = isAndroid && !/Chrome\/|EdgA|OPR\/|SamsungBrowser|Firefox/i.test(uaStr);
 
+        /* ---------- on-page speech diagnostics ----------
+           Every recognition step and every error code is written here, on
+           the page, as it happens. The old build swallowed recognizer
+           errors and silently restarted dead sessions, so a total failure
+           looked exactly like "nothing happened". Never again: if speech
+           fails, this log and the alert card say what the recognizer
+           actually returned. */
+        var diagLines = [];
+        function diagLog(msg) {
+          var line = nowTime() + " " + msg;
+          diagLines.push(line);
+          if (diagLines.length > 9) diagLines.shift();
+          var el = $("diagLog");
+          if (el) el.textContent = diagLines.join("\n");
+          try { console.log("[speech] " + msg); } catch (e) {}
+        }
+        function recogDetail(extra) {
+          var s = (uiLang === "th" ? "ข้อมูลวินิจฉัย: " : "诊断信息：") +
+            "error=" + lastErrorInfo + " · sessions=" + sessionsStarted + " · results=" + totalResults;
+          if (extra) s += " · " + extra;
+          return s;
+        }
+
         /* ---------- speech support alert card ---------- */
-        var lastAlert = null; // { title, body, warn }
-        function showSpeechAlert(titleKey, bodyKey, warn) {
-          lastAlert = { title: titleKey, body: bodyKey, warn: !!warn };
+        var lastAlert = null; // { title, body, warn, detail }
+        function showSpeechAlert(titleKey, bodyKey, warn, detail) {
+          lastAlert = { title: titleKey, body: bodyKey, warn: !!warn, detail: detail || "" };
           var box = $("speechAlert");
           if (!box) return;
           $("speechAlertTitle").textContent = t(titleKey);
           $("speechAlertBody").textContent = t(bodyKey);
+          var det = $("speechAlertDetail");
+          if (det) {
+            det.textContent = detail || "";
+            det.hidden = !detail;
+          }
           box.className = "speech-alert" + (warn ? " warn" : "");
           box.hidden = false;
         }
@@ -720,7 +779,7 @@
           var box = $("speechAlert");
           if (box) box.hidden = true;
         }
-        function refreshSpeechAlert() { if (lastAlert) showSpeechAlert(lastAlert.title, lastAlert.body, lastAlert.warn); }
+        function refreshSpeechAlert() { if (lastAlert) showSpeechAlert(lastAlert.title, lastAlert.body, lastAlert.warn, lastAlert.detail); }
         // re-render the alert in the new UI language after a language switch
         $("uiLangBtn").addEventListener("click", function () { setTimeout(refreshSpeechAlert, 0); });
         $("kbVoiceBtn").addEventListener("click", function () {
@@ -750,6 +809,8 @@
         }
         function detectSpeechSupport() {
           markMicSupport();
+          diagLog("检测：语音接口=" + (SR ? "有" : "无") + "，安全连接=" + (window.isSecureContext ? "是" : "否") +
+            "，安卓=" + (isAndroid ? "是" : "否") + "，Chrome=" + (/Chrome\//.test(uaStr) ? "是" : "否"));
           if (!window.isSecureContext) {
             showSpeechAlert("spUnsupTitle", "spInsecureBody", false);
             setStatus(t("noSpeechSupport"), true);
@@ -784,9 +845,9 @@
           if (restartTimer) clearTimeout(restartTimer);
           restartTimer = setTimeout(function () { restartTimer = null; startSession(); }, delay || 0);
         }
-        function failListening(titleKey, bodyKey, statusKey) {
+        function failListening(titleKey, bodyKey, statusKey, detail) {
           stopListeningAll();
-          showSpeechAlert(titleKey, bodyKey, false);
+          showSpeechAlert(titleKey, bodyKey, false, detail);
           setStatus(t(statusKey || titleKey), true);
         }
         function startSession() {
@@ -805,6 +866,12 @@
             var lastInterim = "";       // latest interim text, rescued on end
             var sessionError = null;    // fatal error seen this session
             var started = false;
+            var sessionTimedOut = false; // started, but 8s with no result and no end
+            var sessionDone = false;     // end handling already ran (guard)
+            var sessionWatchdog = null;  // no-result watchdog timer
+            var endFallback = null;      // forces end handling if onend never fires
+            sessionsStarted++;
+            diagLog("第 " + sessionsStarted + " 次识别会话创建（" + (listenLang === "zh" ? "zh-CN" : "th-TH") + "）");
             r.lang = listenLang === "zh" ? "zh-CN" : "th-TH";
             r.interimResults = true;
             // single-utterance sessions everywhere: continuous mode is what
@@ -812,14 +879,21 @@
             // sessions with nothing — the restart loop below chains them
             try { r.continuous = false; } catch (e) {}
             r.maxAlternatives = 1;
-            r.onstart = function () { started = true; startFails = 0; };
+            r.onstart = function () { started = true; startFails = 0; diagLog("识别会话已启动，开始听…"); };
             r.onresult = function (ev) {
               var finalText = "", interim = "";
               for (var i = ev.resultIndex; i < ev.results.length; i++) {
                 if (ev.results[i].isFinal) finalText += ev.results[i][0].transcript;
                 else interim += ev.results[i][0].transcript;
               }
-              if ((finalText + interim).trim()) { sessionHeard = true; emptySessions = 0; }
+              if ((finalText + interim).trim()) {
+                if (!sessionHeard) {
+                  totalResults++;
+                  diagLog("识别有返回了（第 " + sessionsStarted + " 次会话）");
+                  if (sessionWatchdog) { clearTimeout(sessionWatchdog); sessionWatchdog = null; }
+                }
+                sessionHeard = true; emptySessions = 0;
+              }
               if (interim) lastInterim = interim;
               liveLine.textContent = finalText + interim;
               liveLine.classList.add("active");
@@ -835,26 +909,45 @@
               }
             };
             r.onerror = function (ev) {
-              var err = ev && ev.error;
-              if (err === "not-allowed" || err === "service-not-allowed") {
+              var err = (ev && ev.error) || "unknown";
+              // never swallow an error again: every code the recognizer
+              // returns is written to the on-page diagnostics and kept,
+              // verbatim, for the alert card
+              lastErrorInfo = err;
+              diagLog("识别返回错误：" + err);
+              if (err === "not-allowed") {
                 sessionError = "denied";
+              } else if (err === "service-not-allowed") {
+                // the phone's speech service itself is unavailable — NOT a
+                // mic-permission problem; the old build mislabeled this as
+                // "permission denied" (or the session just died quietly)
+                sessionError = "service";
               } else if (err === "network") {
                 sessionError = "network";
               } else if (err === "audio-capture") {
                 sessionError = "capture";
               } else if (err === "language-not-supported") {
                 sessionError = "language";
+              } else if (err !== "no-speech" && err !== "aborted") {
+                sessionError = "other";
               }
-              // "no-speech" / "aborted": onend below decides what happens
+              // "no-speech" / "aborted": the end handling below decides
             };
-            r.onend = function () {
+            var handleSessionEnd = function () {
+              if (sessionDone) return;
+              sessionDone = true;
+              if (sessionWatchdog) { clearTimeout(sessionWatchdog); sessionWatchdog = null; }
+              if (endFallback) { clearTimeout(endFallback); endFallback = null; }
               recogActive = false;
               if (recog === r) recog = null;
               if (!wantListen) { setMicUI(); return; }
-              if (sessionError === "denied") { failListening("spDeniedTitle", "spDeniedBody", "micDenied"); return; }
-              if (sessionError === "network") { failListening("spNetTitle", "spNetBody", "recogNet"); return; }
-              if (sessionError === "capture") { failListening("spFailTitle", "spFailBody", "audioCapture"); return; }
-              if (sessionError === "language") { failListening("spFailTitle", "spFailBody", "noSpeechSupport"); return; }
+              var detail = recogDetail();
+              if (sessionError === "denied") { failListening("spDeniedTitle", "spDeniedBody", "micDenied", detail); return; }
+              if (sessionError === "service") { failListening("spDeadTitle", "spDeadBody", "noSpeechSupport", detail); return; }
+              if (sessionError === "network") { failListening("spNetTitle", "spNetBody", "recogNet", detail); return; }
+              if (sessionError === "capture") { failListening("spFailTitle", "spFailBody", "audioCapture", detail); return; }
+              if (sessionError === "language") { failListening("spFailTitle", "spFailBody", "noSpeechSupport", detail); return; }
+              if (sessionError === "other") { failListening("spDeadTitle", "spDeadBody", "noResult", detail); return; }
               if (holdListen) return; // resumeListening restarts after speaking
               if (!submitted && lastInterim.trim()) {
                 // Android recognizers often end a session holding only
@@ -871,17 +964,31 @@
               }
               if (!sessionHeard) {
                 emptySessions++;
-                if (emptySessions >= 3) {
-                  // three sessions in a row produced nothing at all: this
-                  // is a dead recognition service (stock browser / blocked
-                  // network), not a quiet user — stop and say so plainly
-                  // instead of restarting forever in silence
-                  failListening("spFailTitle", "spFailBody", "noResult");
+                if (sessionTimedOut) {
+                  // the session started but produced nothing and never
+                  // ended on its own — the silent hang seen on Android
+                  // Chrome. When nothing has EVER been recognized in this
+                  // run, one hung session is already diagnostic: stop and
+                  // put the reason on the alert card instead of looping
+                  diagLog("会话无响应：已启动但 8 秒内没有任何识别返回");
+                  if (totalResults === 0) {
+                    failListening("spDeadTitle", "spDeadBody", "noResult", recogDetail("会话启动后 8 秒无任何返回"));
+                    return;
+                  }
+                }
+                if (emptySessions >= 2) {
+                  // two sessions in a row produced nothing at all: this is
+                  // a dead recognition service (system speech service
+                  // unavailable, or its traffic split-routed direct and
+                  // timing out), not a quiet user — stop and say so
+                  // plainly instead of restarting forever in silence
+                  failListening("spDeadTitle", "spDeadBody", "noResult", detail);
                   return;
                 }
               }
               scheduleStart(sessionHeard ? 300 : 500);
             };
+            r.onend = handleSessionEnd;
             recogActive = true;
             try { r.start(); } catch (e) {
               recogActive = false;
@@ -898,12 +1005,30 @@
             }
             // a session whose onstart never arrives (stock browsers can
             // accept start() and then do nothing at all) must not look like
-            // listening forever: count it as a failed start
+            // listening forever — and if abort() never produces onend
+            // either, force the end handling: the old build could wedge
+            // with recogActive stuck true, which silently blocked every
+            // later session and made the mic look permanently dead
             setTimeout(function () {
-              if (recog === r && recogActive && !started && wantListen && !holdListen) {
+              if (recog === r && recogActive && !started && wantListen && !holdListen && !sessionDone) {
+                diagLog("识别会话 3.5 秒都没有启动成功");
                 try { r.abort(); } catch (e) {}
+                endFallback = setTimeout(function () { handleSessionEnd(); }, 1200);
               }
             }, 3500);
+            // a session that starts but then returns nothing and never
+            // ends — the Android Chrome silent hang (recognition service
+            // unreachable, e.g. its traffic split-routed around the
+            // proxy): give it 8 seconds, then abort and let the end
+            // handling put the reason on the alert card
+            sessionWatchdog = setTimeout(function () {
+              sessionWatchdog = null;
+              if (recog === r && recogActive && !sessionHeard && !sessionDone && wantListen && !holdListen) {
+                sessionTimedOut = true;
+                try { r.abort(); } catch (e) {}
+                endFallback = setTimeout(function () { handleSessionEnd(); }, 1200);
+              }
+            }, 8000);
           }, 250);
         }
         function resumeListening() {
@@ -933,6 +1058,10 @@
           holdListen = false;
           startFails = 0;
           emptySessions = 0;
+          sessionsStarted = 0;
+          totalResults = 0;
+          lastErrorInfo = "—";
+          diagLog("开始聆听（" + (lang === "zh" ? "中文" : "泰语") + "），等待识别返回…");
           setMicUI();
           listenStatus();
           liveLine.textContent = "";
@@ -959,9 +1088,11 @@
             navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
               var tracks = stream.getTracks();
               for (var i = 0; i < tracks.length; i++) { try { tracks[i].stop(); } catch (e) {} }
+              diagLog("麦克风权限已拿到");
               beginListening(lang);
-            }, function () {
-              showSpeechAlert("spDeniedTitle", "spDeniedBody", false);
+            }, function (err) {
+              diagLog("麦克风权限没拿到：" + ((err && err.name) || "denied"));
+              showSpeechAlert("spDeniedTitle", "spDeniedBody", false, recogDetail());
               setStatus(t("micDenied"), true);
             });
           } else {
