@@ -107,6 +107,25 @@
       }
       @media (prefers-color-scheme: dark) { .code-display .code { color: var(--zh); } }
       .code-display p { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+      .mode-note {
+        border: 1.5px solid var(--amber); border-radius: 12px; padding: 10px 12px;
+        font-size: 13.5px; font-weight: 600; margin: 0 0 12px; background: var(--panel-2);
+      }
+      .conn-box.active { outline: 2.5px solid var(--zh); outline-offset: 1px; }
+      .conn-box.locked { opacity: .45; }
+      .conn-box.locked button, .conn-box.locked input { pointer-events: none; }
+      .conn-box .lock-note { display: none; font-size: 12.5px; font-weight: 700; color: var(--bad); margin: 8px 0 0; }
+      .conn-box.locked .lock-note { display: block; }
+      .conn-error {
+        display: none; border: 1.5px solid var(--bad); border-radius: 12px;
+        padding: 10px 12px; font-size: 14px; font-weight: 600; margin: 0 0 12px;
+        color: var(--bad); background: var(--panel);
+      }
+      .conn-error.show { display: block; }
+      .conn-detail { font-size: 13px; color: var(--ink-soft); margin: -6px 0 12px; min-height: 20px; }
+      .cancel-row { margin-top: 12px; display: none; }
+      .cancel-row.show { display: block; }
+      .cancel-row .btn { width: auto; }
 
       /* ---------- talk zone ---------- */
       .talk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -196,32 +215,19 @@
       <div class="head">
         <button class="uilink" id="uiLangBtn" type="button">ไทย</button>
         <h1><span data-i18n="titleA">中文</span><span class="arr">⇄</span><span data-i18n="titleB">泰语</span> <span data-i18n="titleC">实时翻译</span></h1>
-        <p data-i18n="subtitle">两个人各开这个页面，进同一个房间：你说中文，她那边听到泰语；她说泰语，你这边听到中文。</p>
+        <p data-i18n="subtitle">两个人各开这个页面就行，不用房间、不用码：你说中文，她那边听到泰语；她说泰语，你这边听到中文。</p>
       </div>
 
       <!-- connection -->
       <section class="card" aria-label="connection">
-        <h2 data-i18n="connTitle">先连上对方</h2>
-        <p class="hint" data-i18n="connHint">一个人创建房间，把 6 位数字房间码告诉对方；对方输入房间码加入。连上之后，你说的话翻译完会自动发到对方手机上读出来。不连房间也能单独用：翻译会在自己手机上读出来，适合开着视频免提聊。</p>
-        <div class="status-row"><span class="dot" id="connDot"></span><span id="connText" data-i18n="notConn">未连接</span></div>
-        <div class="conn-grid">
-          <div class="conn-box">
-            <h3 data-i18n="createTitle">我创建房间</h3>
-            <p data-i18n="createHint">点按钮生成房间码，发给对方。</p>
-            <button class="btn" id="createBtn" type="button" data-i18n="createBtn">创建房间</button>
-            <div class="code-display" id="codeDisplay">
-              <div class="code" id="codeText">------</div>
-              <p data-i18n="codeHint">把这个 6 位数字码告诉对方就行</p>
-            </div>
-          </div>
-          <div class="conn-box">
-            <h3 data-i18n="joinTitle">我加入房间</h3>
-            <p data-i18n="joinHint">输入对方给你的 6 位数字房间码。</p>
-            <div class="join-row">
-              <input id="joinInput" autocomplete="off" inputmode="numeric" maxlength="6" placeholder="000000" aria-label="room code" />
-              <button class="btn" id="joinBtn" type="button" data-i18n="joinBtn">加入</button>
-            </div>
-          </div>
+        <h2 data-i18n="connTitle">打开页面就自动同步</h2>
+        <p class="hint" data-i18n="connHint">不用建房间、不用输码：所有打开这个页面的人都在同一个公开对话里。你说话或打字，翻译完会自动发给所有打开页面的人，对方那边会读出来。不想同步时，把页面关掉就行。</p>
+        <p class="mode-note" data-i18n="modeHint">这是公开对话：所有正打开这个页面的人都能收到你说的话，也会听到别人说的。别在这里说密码、验证码这类隐私内容。</p>
+        <div class="status-row"><span class="dot" id="connDot"></span><span id="connText" data-i18n="notConn">正在接入…</span></div>
+        <div class="conn-error" id="connError" role="alert"></div>
+        <div class="conn-detail" id="connDetail"></div>
+        <div class="cancel-row" id="retryRow">
+          <button class="btn ghost" id="retrySyncBtn" type="button" data-i18n="retrySync">重新连接</button>
         </div>
       </section>
 
@@ -281,10 +287,10 @@
       <section class="card tips">
         <h2 data-i18n="tipsTitle">用之前知道这几点</h2>
         <ul>
-          <li data-i18n="tip1">全程要联网：语音识别、翻译、房间连线都走网络。</li>
+          <li data-i18n="tip1">全程要联网：语音识别、翻译、同步都走网络。</li>
           <li data-i18n="tip2">第一次点麦克风，浏览器会问麦克风权限，点「允许」。</li>
           <li data-i18n="tip3">iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应、或听一会儿停了，重新点一下按钮；还不行就用打字框输入，翻译和朗读照样能用。</li>
-          <li data-i18n="tip4">房间连线是手机对手机加密直连（直连打不通时走免费中继），内容全程加密，不存录音；翻译文字走免费翻译接口。</li>
+          <li data-i18n="tip4">对话是公开同步的：所有打开这个页面的人都能看到、听到，不要说隐私内容；不存录音，翻译文字走免费翻译接口。</li>
         </ul>
       </section>
 
@@ -298,9 +304,13 @@
         var I18N = {
           zh: {
             titleA: "中文", titleB: "泰语", titleC: "实时翻译",
-            subtitle: "两个人各开这个页面，进同一个房间：你说中文，她那边听到泰语；她说泰语，你这边听到中文。",
-            connTitle: "先连上对方", connHint: "一个人创建房间，把 6 位数字房间码告诉对方；对方输入房间码加入。连上之后，你说的话翻译完会自动发到对方手机上读出来。不连房间也能单独用：翻译会在自己手机上读出来，适合开着视频免提聊。",
-            notConn: "未连接", createTitle: "我创建房间", createHint: "点按钮生成房间码，发给对方。",
+            subtitle: "两个人各开这个页面就行，不用房间、不用码：你说中文，她那边听到泰语；她说泰语，你这边听到中文。",
+            connTitle: "打开页面就自动同步", connHint: "不用建房间、不用输码：所有打开这个页面的人都在同一个公开对话里。你说话或打字，翻译完会自动发给所有打开页面的人，对方那边会读出来。不想同步时，把页面关掉就行。",
+            notConn: "正在接入…", createTitle: "我创建房间", createHint: "点按钮生成房间码，发给对方。",
+            syncConnecting: "正在接入同步通道…",
+            syncOn: "已同步：说话或打字，所有打开页面的人都能收到",
+            syncFail: "同步通道没连上",
+            retrySync: "重新连接",
             createBtn: "创建房间", codeHint: "把这个 6 位数字码告诉对方就行",
             joinTitle: "我加入房间", joinHint: "输入对方给你的 6 位数字房间码。", joinBtn: "加入",
             talkTitle: "点一下开始听，再点一下停", talkHint: "点自己语言的按钮开始听：说完一句自动翻译并读出来，读完会接着听下一句，不用每句都点。再点一下按钮结束。说短句、慢一点，翻译更准。",
@@ -308,17 +318,27 @@
             autoSpeak: "自动朗读译文", slowSpeak: "慢速朗读", clearBtn: "清空对话",
             feedTitle: "对话记录", emptyFeed: "还没有对话。点上面的麦克风，说第一句吧。",
             tipsTitle: "用之前知道这几点",
-            tip1: "全程要联网：语音识别、翻译、房间连线都走网络。",
+            tip1: "全程要联网：语音识别、翻译、同步都走网络。",
             tip2: "第一次点麦克风，浏览器会问麦克风权限，点「允许」。",
             tip3: "iPhone 自带浏览器对网页语音识别支持不稳：如果点了麦克风没反应、或听一会儿停了，重新点一下按钮；还不行就用打字框输入，翻译和朗读照样能用。",
-            tip4: "房间连线是手机对手机加密直连（直连打不通时走免费中继），内容全程加密，不存录音；翻译文字走免费翻译接口。",
+            tip4: "对话是公开同步的：所有打开这个页面的人都能看到、听到，不要说隐私内容；不存录音，翻译文字走免费翻译接口。",
             waitingPeer: "房间已建好，等对方输入房间码加入…",
-            badCode: "没找到这个房间：确认对方已经创建房间、6 位码输对了，再点一次加入",
+            badCode: "没找到房间（已等 30 秒没人应答）：① 对方还没点「创建房间」，或对方页面已经关了；② 你输的 6 位码和对方的码不一致，必须一位都不差；③ 让对方保持页面开着，你再点一次加入",
             cryptoFail: "当前页面不是安全连接（https），房间加密用不了，换个 https 链接打开再试",
             connecting: "正在连接…",
             connected: "已连接，可以说话了",
             connLost: "连接断开了，可以重新创建或加入房间",
             connFail: "连接失败，检查网络后重试",
+            modeHint: "这是公开对话：所有正打开这个页面的人都能收到你说的话，也会听到别人说的。别在这里说密码、验证码这类隐私内容。",
+            lockBusy: "你已经选了「加入」，这边不能再点。想换的话先点下面「取消」。",
+            lockBusy2: "你已经选了「创建」，这边不能再输码。对方应该在另一台设备上输你上面那个码。",
+            cancelRoom: "取消，重新选择",
+            brokerFail: "连接服务连不上（三个通道都没响应）：多半是网络不通或代理/VPN 拦截。先关掉代理/VPN、换个网络，再重试。",
+            searchingRoom: "正在找这个房间…对方要先点「创建房间」并保持页面开着",
+            foundRoom: "已找到房间，正在接通…",
+            hostWaitDetail: "让对方在另一台设备上点「加入」，输入上面这个码，一位都不能错；对方不要点「创建」。",
+            hostGone: "对方的房间已不在了（可能关了页面），让对方重新创建，再输新码加入",
+            alreadyInRoom: "你这台设备已经建了房间，不能再加入自己。加入要在另一台设备上操作。",
             listeningZh: "正在听你说中文…再点一下按钮结束",
             listeningTh: "正在听泰语…再点一下按钮结束",
             translating: "翻译中…",
@@ -326,7 +346,7 @@
             micDenied: "麦克风没打开，去浏览器设置里允许麦克风后重试，或改用打字",
             noResult: "没听清，再说一次，或者打字输入",
             translateFail: "翻译接口没响应，检查网络后重试",
-            fromMe: "我说的", fromPeer: "对方说的",
+            fromMe: "我说的", fromPeer: "别人说的",
             enterCode: "先输入 6 位数字房间码",
             netNeeded: "连线组件没加载成功（可能没联网），刷新页面重试；不连房间也能单独翻译",
             recogNet: "语音识别连不上网，检查网络后重试",
@@ -334,9 +354,13 @@
           },
           th: {
             titleA: "จีน", titleB: "ไทย", titleC: "แปลเรียลไทม์",
-            subtitle: "เปิดหน้านี้คนละเครื่อง เข้าห้องเดียวกัน: เขาพูดจีน คุณได้ยินเสียงไทย คุณพูดไทย เขาได้ยินเสียงจีน",
-            connTitle: "เชื่อมต่อกันก่อน", connHint: "คนหนึ่งสร้างห้องแล้วบอกรหัสห้องตัวเลข 6 หลักให้อีกคน อีกคนใส่รหัสเพื่อเข้าร่วม พอเชื่อมกันแล้ว คำพูดจะถูกแปลและส่งไปอ่านออกเสียงที่เครื่องของอีกฝ่าย ไม่เข้าห้องก็ใช้คนเดียวได้",
-            notConn: "ยังไม่เชื่อมต่อ", createTitle: "ฉันสร้างห้อง", createHint: "กดปุ่มเพื่อรับรหัสห้อง แล้วส่งให้อีกฝ่าย",
+            subtitle: "เปิดหน้านี้คนละเครื่องก็พอ ไม่ต้องมีห้อง ไม่ต้องใส่รหัส: เขาพูดจีน คุณได้ยินเสียงไทย คุณพูดไทย เขาได้ยินเสียงจีน",
+            connTitle: "เปิดปุ๊บซิงค์ปั๊บ", connHint: "ไม่ต้องสร้างห้อง ไม่ต้องใส่รหัส ทุกคนที่เปิดหน้านี้อยู่จะอยู่ในบทสนทนาสาธารณะเดียวกัน คุณพูดหรือพิมพ์ ระบบแปลแล้วส่งให้ทุกคนที่เปิดหน้าอยู่อ่านออกเสียงให้ฟัง ถ้าไม่อยากซิงค์ก็ปิดหน้านี้ไปเลย",
+            notConn: "กำลังเชื่อมต่อ…", createTitle: "ฉันสร้างห้อง", createHint: "กดปุ่มเพื่อรับรหัสห้อง แล้วส่งให้อีกฝ่าย",
+            syncConnecting: "กำลังเชื่อมต่อช่องซิงค์…",
+            syncOn: "ซิงค์แล้ว: พูดหรือพิมพ์ ทุกคนที่เปิดหน้านี้อยู่จะได้รับ",
+            syncFail: "เชื่อมต่อช่องซิงค์ไม่ได้",
+            retrySync: "เชื่อมต่อใหม่",
             createBtn: "สร้างห้อง", codeHint: "บอกรหัสตัวเลข 6 หลักนี้ให้อีกฝ่ายก็พอ",
             joinTitle: "ฉันเข้าห้อง", joinHint: "ใส่รหัสห้องตัวเลข 6 หลักที่อีกฝ่ายให้มา", joinBtn: "เข้าร่วม",
             talkTitle: "กดหนึ่งครั้งเพื่อเริ่มฟัง กดอีกครั้งเพื่อหยุด", talkHint: "กดปุ่มภาษาของตัวเองเพื่อเริ่มฟัง พูดจบหนึ่งประโยคระบบจะแปลและอ่านออกเสียงให้ แล้วฟังประโยคต่อไปเอง ไม่ต้องกดทุกประโยค กดปุ่มอีกครั้งเพื่อหยุด พูดสั้น ๆ ช้า ๆ จะแปลแม่นกว่า",
@@ -347,14 +371,24 @@
             tip1: "ต้องมีอินเทอร์เน็ตตลอด: การรู้จำเสียง การแปล และการเชื่อมต่อห้องใช้เครือข่ายทั้งหมด",
             tip2: "กดไมโครโฟนครั้งแรก เบราว์เซอร์จะขออนุญาตใช้ไมค์ ให้กด «อนุญาต»",
             tip3: "เบราว์เซอร์บน iPhone อาจรองรับการรู้จำเสียงบนเว็บไม่เสถียร ถ้ากดไมค์แล้วไม่มีอะไรเกิดขึ้นหรือหยุดฟังไปเอง ให้กดปุ่มอีกครั้ง ถ้ายังไม่ได้ให้พิมพ์แทน การแปลและการอ่านออกเสียงยังใช้ได้",
-            tip4: "การเชื่อมต่อห้องเป็นแบบเครื่องต่อเครื่องและเข้ารหัสตลอดทาง (ถ้าเชื่อมตรงไม่ได้จะผ่านตัวกลางฟรี) ไม่มีการบันทึกเสียง ข้อความแปลผ่านบริการแปลฟรี",
+            tip4: "บทสนทนานี้ซิงค์แบบสาธารณะ ทุกคนที่เปิดหน้านี้อยู่จะเห็นและได้ยิน อย่าพูดเรื่องส่วนตัว ไม่มีการบันทึกเสียง ข้อความแปลผ่านบริการแปลฟรี",
             waitingPeer: "สร้างห้องแล้ว รออีกฝ่ายใส่รหัสเข้าร่วม…",
-            badCode: "ไม่พบห้องนี้ ตรวจว่าอีกฝ่ายสร้างห้องแล้วและรหัส 6 หลักถูกต้อง แล้วลองเข้าร่วมอีกครั้ง",
+            badCode: "ไม่พบห้อง (รอ 30 วินาทีไม่มีใครตอบ): ① อีกฝ่ายยังไม่ได้กดสร้างห้อง หรือปิดหน้าไปแล้ว ② รหัส 6 หลักไม่ตรงกัน ต้องตรงทุกตัว ③ ให้อีกฝ่ายเปิดหน้านี้ค้างไว้ แล้วลองเข้าร่วมอีกครั้ง",
             cryptoFail: "หน้านี้ไม่ได้เปิดผ่านการเชื่อมต่อที่ปลอดภัย (https) จึงใช้ห้องแบบเข้ารหัสไม่ได้ ลองเปิดลิงก์ https แทน",
             connecting: "กำลังเชื่อมต่อ…",
             connected: "เชื่อมต่อแล้ว พูดได้เลย",
             connLost: "การเชื่อมต่อหลุด สร้างห้องหรือเข้าห้องใหม่ได้",
             connFail: "เชื่อมต่อไม่สำเร็จ ตรวจเครือข่ายแล้วลองใหม่",
+            modeHint: "นี่คือบทสนทนาสาธารณะ: ทุกคนที่เปิดหน้านี้อยู่จะได้ยินสิ่งที่คุณพูด และคุณจะได้ยินคนอื่นด้วย อย่าพูดรหัสผ่านหรือเรื่องส่วนตัวที่นี่",
+            lockBusy: "คุณเลือก «เข้าร่วม» แล้ว กดตรงนี้ไม่ได้ ถ้าจะเปลี่ยนให้กด «ยกเลิก» ด้านล่างก่อน",
+            lockBusy2: "คุณเลือก «สร้างห้อง» แล้ว ใส่รหัสตรงนี้ไม่ได้ อีกฝ่ายต้องใส่รหัสของคุณในอีกเครื่อง",
+            cancelRoom: "ยกเลิก เลือกใหม่",
+            brokerFail: "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (ทั้งสามช่องทางไม่ตอบ) มักเกิดจากเครือข่ายหรือ VPN/พร็อกซี ให้ปิด VPN เปลี่ยนเครือข่าย แล้วลองใหม่",
+            searchingRoom: "กำลังหาห้องนี้… อีกฝ่ายต้องกด «สร้างห้อง» และเปิดหน้านี้ค้างไว้ก่อน",
+            foundRoom: "เจอห้องแล้ว กำลังเชื่อมต่อ…",
+            hostWaitDetail: "ให้อีกฝ่ายกด «เข้าร่วม» ในอีกเครื่อง แล้วใส่รหัสข้างบนให้ตรงทุกตัว อีกฝ่ายไม่ต้องกด «สร้างห้อง»",
+            hostGone: "ห้องของอีกฝ่ายไม่อยู่แล้ว (อาจปิดหน้าไป) ให้อีกฝ่ายสร้างห้องใหม่แล้วใส่รหัสใหม่",
+            alreadyInRoom: "เครื่องนี้สร้างห้องแล้ว เข้าร่วมห้องตัวเองไม่ได้ ต้องเข้าร่วมจากอีกเครื่อง",
             listeningZh: "กำลังฟังภาษาจีน… กดปุ่มอีกครั้งเพื่อหยุด",
             listeningTh: "กำลังฟังภาษาไทย… กดปุ่มอีกครั้งเพื่อหยุด",
             translating: "กำลังแปล…",
@@ -747,57 +781,37 @@
           this.setAttribute("aria-pressed", slowSpeak ? "true" : "false");
         });
 
-        /* ============ room connection (MQTT signaling + WebRTC data channel) ============
-           Why the previous builds sat on "正在连接…" forever:
-           - They signaled through the PeerJS public cloud broker, which is
-             unreliable from mainland China, and the create/join flows had no
-             timeout on broker registration at all — if the broker socket
-             never opened, the status stayed "connecting" indefinitely, and
-             the joiner silently retried for ~2 minutes before saying anything.
-           - The ICE list pointed at a discontinued free TURN relay, which
-             stalled connection checks.
-           Now: signaling rides public MQTT brokers over WSS (emqx first —
-             reachable from both China and Thailand — hivemq as fallback).
-           Every step has a watchdog: broker connect 10s per broker, then
-           fallback, then an explicit failure message. The joiner re-sends
-           its join request every 4s and gives up loudly after 45s instead
-           of spinning forever. Media path is a direct WebRTC data channel
-           (STUN + live TURN relay when direct fails).
-           Pairing code: just 6 digits, as the user asked. The code is the
-           rendezvous name AND the seed for the room key: all room content
-           is AES-GCM encrypted with a key stretched from the code via
-           PBKDF2 (200k rounds — brute-forcing a million codes against
-           that KDF is impractical), so the MQTT broker and any relay only
-           ever see ciphertext, and a peer that cannot decrypt the
-           handshake never gets marked connected or receives a message. */
+        /* ============ public sync channel (no rooms, no codes, no pairing) ============
+           Everyone who opens this page joins the same public channel.
+           There is nothing to create, join, or type: the page connects on
+           load, and every translated utterance is broadcast to all open
+           pages, which display it and read it aloud.
+           Transport: public MQTT brokers over WSS. All three brokers are
+           connected AT ONCE and every message is published to all of them,
+           so two devices only need to share one reachable broker — the old
+           room build connected to one broker at a time with a fallback,
+           which could strand the two devices on different brokers forever,
+           and its messages additionally depended on a WebRTC data channel
+           whose ICE checks routinely fail between China and Thailand.
+           Messages here ride the broker channel directly; duplicates from
+           hearing the same message on several brokers are dropped by id.
+           By the user's explicit choice this channel is public and
+           unencrypted: anyone with the page open can receive. */
         var BROKERS = [
           "wss://broker.emqx.io:8084/mqtt",
-          "wss://broker.hivemq.com:8884/mqtt"
+          "wss://broker.hivemq.com:8884/mqtt",
+          "wss://test.mosquitto.org:8081/mqtt"
         ];
-        var ICE_CONFIG = {
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun.cloudflare.com:3478" },
-            { urls: "stun:stun.miwifi.com:3478" },
-            { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-            { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-            { urls: "turns:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
-          ]
-        };
+        var TOPIC = "lingbao/fanyi/public/v1";
         var clientId = "c" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
         var connState = "off"; // off | wait | on
-        var mq = null;             // MQTT client (signaling only)
-        var pc = null, dc = null;  // WebRTC peer connection + data channel
-        var isJoiner = false;
-        var roomCode = null;
-        var roomKey = null;        // AES-GCM key derived from the 6-digit code
-        var peerAuthed = false;    // a decryptable handshake completed
-        var brokerIdx = 0, brokerTimer = null, brokerReady = null;
-        var joinTimer = null, joinDeadline = null, gotOffer = false, guestId = null;
-        var remoteSet = false, pendingIce = [];
-        var outQueue = [];         // plaintext payloads waiting for an authed channel
-        var pumpBusy = false;
+        var mqClients = [];
+        var mqReady = false;
+        var syncWatchdog = null;
+        var aliveTimer = null;
+        var peers = {};            // clientId -> last-seen timestamp (presence only)
+        var lastAliveReply = 0;
+        var outQueue = [];         // payloads waiting for a broker connection
         var seenIds = [], seenSet = {};
         var msgSeq = 0;
 
@@ -808,294 +822,153 @@
           txt.textContent = msgKey ? t(msgKey) : t("notConn");
           txt.removeAttribute("data-i18n");
         }
-        function clearRoomTimers() {
-          if (brokerTimer) { clearTimeout(brokerTimer); brokerTimer = null; }
-          if (joinTimer) { clearInterval(joinTimer); joinTimer = null; }
-          if (joinDeadline) { clearTimeout(joinDeadline); joinDeadline = null; }
+        function showConnError(msgKey) {
+          var el = $("connError");
+          if (!el) return;
+          if (msgKey) { el.textContent = t(msgKey); el.className = "conn-error show"; }
+          else { el.textContent = ""; el.className = "conn-error"; }
         }
-        function teardownRoom() {
-          clearRoomTimers();
-          peerAuthed = false;
-          outQueue = [];
-          roomKey = null;
-          gotOffer = false;
-          guestId = null;
-          if (dc) { try { dc.close(); } catch (e) {} dc = null; }
-          if (pc) { try { pc.close(); } catch (e) {} pc = null; }
-          if (mq) { try { mq.end(true); } catch (e) {} mq = null; }
+        function showRetry(show) {
+          var row = $("retryRow");
+          if (row) row.className = "cancel-row" + (show ? " show" : "");
         }
-
-        /* ---------- end-to-end encryption (AES-GCM, PBKDF2-stretched) ---------- */
-        function b64encode(bytes) {
-          var s = "";
-          for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
-          return btoa(s);
+        function updatePeerDetail() {
+          var el = $("connDetail");
+          if (!el) return;
+          if (!mqReady) { el.textContent = ""; return; }
+          var now = Date.now(), n = 1, id;
+          for (id in peers) { if (now - peers[id] < 75000) n++; }
+          el.textContent = uiLang === "th"
+            ? "อุปกรณ์ที่เปิดหน้านี้อยู่ตอนนี้: " + n + " เครื่อง (รวมเครื่องนี้)"
+            : "现在打开这个页面的设备：" + n + " 台（含这台）";
         }
-        function b64decode(str) {
-          var s = atob(str), out = new Uint8Array(s.length);
-          for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
-          return out;
+        function broadcast(obj) {
+          var raw = JSON.stringify(obj), sent = false;
+          for (var i = 0; i < mqClients.length; i++) {
+            if (mqClients[i].connected) {
+              try { mqClients[i].publish(TOPIC, raw); sent = true; } catch (e) {}
+            }
+          }
+          return sent;
         }
-        function deriveRoomKey(code) {
-          var enc = new TextEncoder();
-          return window.crypto.subtle.importKey("raw", enc.encode("room-" + code), "PBKDF2", false, ["deriveKey"])
-            .then(function (base) {
-              return window.crypto.subtle.deriveKey(
-                { name: "PBKDF2", salt: enc.encode("lingbaofanyi-v1-salt"), iterations: 200000, hash: "SHA-256" },
-                base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-            });
-        }
-        function encryptPayload(obj) {
-          var iv = window.crypto.getRandomValues(new Uint8Array(12));
-          var body = new TextEncoder().encode(JSON.stringify(obj));
-          return window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, roomKey, body)
-            .then(function (ct) {
-              return { type: "enc", iv: b64encode(iv), ct: b64encode(new Uint8Array(ct)) };
-            });
-        }
-        function decryptPayload(env) {
-          return window.crypto.subtle.decrypt(
-            { name: "AES-GCM", iv: b64decode(env.iv) }, roomKey, b64decode(env.ct))
-            .then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); })
-            .catch(function () { return null; });
-        }
-        function channelOpen() { return !!(dc && dc.readyState === "open"); }
-        function sendEncrypted(obj) {
-          if (!channelOpen() || !roomKey) return;
-          encryptPayload(obj).then(function (env) {
-            if (channelOpen()) { try { dc.send(JSON.stringify(env)); } catch (e) {} }
-          }).catch(function () {});
-        }
-
-        /* ---------- message pipeline ---------- */
         function sendToPeer(payload) {
           payload.id = clientId + "-" + (++msgSeq);
           payload.fromClient = clientId;
-          outQueue.push(payload);
-          pumpQueue();
+          if (!broadcast({ kind: "chat", data: payload })) outQueue.push(payload);
         }
-        function pumpQueue() {
-          if (pumpBusy || !peerAuthed || !channelOpen() || !roomKey) return;
-          var p = outQueue.shift();
-          if (!p) return;
-          pumpBusy = true;
-          encryptPayload(p).then(function (env) {
-            pumpBusy = false;
-            if (channelOpen()) { try { dc.send(JSON.stringify(env)); } catch (e) {} }
-            pumpQueue();
-          }).catch(function () { pumpBusy = false; pumpQueue(); });
+        function flushQueue() {
+          if (!outQueue.length) return;
+          var q = outQueue; outQueue = [];
+          for (var i = 0; i < q.length; i++) {
+            if (!broadcast({ kind: "chat", data: q[i] })) outQueue.push(q[i]);
+          }
         }
-        function markAuthed() {
-          if (peerAuthed) return;
-          peerAuthed = true;
-          clearRoomTimers();
-          setConn("on", "connected");
-          pumpQueue();
-        }
-        function handleDecrypted(data) {
-          if (!data) return;
-          if (data.type === "hello") { markAuthed(); sendEncrypted({ type: "hello-ack", fromClient: clientId }); return; }
-          if (data.type === "hello-ack") { markAuthed(); return; }
-          if (data.type !== "msg") return;
-          if (data.fromClient === clientId) return;
+        function handleIncoming(data) {
+          if (!data || data.type !== "msg") return;
+          if (data.fromClient === clientId) return; // our own broadcast echo
           if (data.id) {
             if (seenSet[data.id]) return;
             seenSet[data.id] = 1;
             seenIds.push(data.id);
             if (seenIds.length > 300) delete seenSet[seenIds.shift()];
           }
-          markAuthed();
+          if (data.fromClient) peers[data.fromClient] = Date.now();
           addMessage(data, false, false);
           if (autoSpeak) {
             if (wantListen) { pauseListeningForSpeech(); speak(data.translation, data.to, resumeListening); }
             else speak(data.translation, data.to);
           }
+          updatePeerDetail();
         }
-
-        /* ---------- WebRTC wiring ---------- */
-        function attachChannel(ch) {
-          dc = ch;
-          ch.onopen = function () { sendEncrypted({ type: "hello", fromClient: clientId }); };
-          ch.onmessage = function (ev) {
-            var data = null;
-            try { data = JSON.parse(ev.data); } catch (e) { return; }
-            if (!data || data.type !== "enc" || !roomKey) return;
-            decryptPayload(data).then(function (obj) { handleDecrypted(obj); });
-          };
-          ch.onclose = function () {
-            if (dc === ch) dc = null;
-            if (peerAuthed) { peerAuthed = false; setConn("off", "connLost"); }
-          };
-        }
-        function sigSend(msg) {
-          if (!mq) return;
-          msg.from = clientId;
-          try { mq.publish("lingbao/fanyi/v2/" + roomCode, JSON.stringify(msg)); } catch (e) {}
-        }
-        function addIce(cand) {
-          if (!pc || !cand) return;
-          if (remoteSet) { pc.addIceCandidate(cand).catch(function () {}); }
-          else pendingIce.push(cand);
-        }
-        function flushIce() {
-          remoteSet = true;
-          while (pendingIce.length) { var c = pendingIce.shift(); pc.addIceCandidate(c).catch(function () {}); }
-        }
-        function newPC() {
-          if (pc) { try { pc.close(); } catch (e) {} }
-          remoteSet = false;
-          pendingIce = [];
-          pc = new RTCPeerConnection(ICE_CONFIG);
-          pc.onicecandidate = function (e) { if (e.candidate) sigSend({ kind: "ice", candidate: e.candidate }); };
-          pc.onconnectionstatechange = function () {
-            if (!pc) return;
-            if (pc.connectionState === "failed") {
-              if (peerAuthed) { peerAuthed = false; setConn("off", "connLost"); }
-              else if (isJoiner && !gotOffer) { /* join loop keeps trying */ }
-              else if (!isJoiner) { guestId = null; if (connState !== "off") setConn("wait", "waitingPeer"); }
+        function onSyncMessage(msg) {
+          if (!msg) return;
+          if (msg.kind === "chat") { handleIncoming(msg.data); return; }
+          if ((msg.kind === "hello" || msg.kind === "alive") && msg.from && msg.from !== clientId) {
+            var isNew = !peers[msg.from];
+            peers[msg.from] = Date.now();
+            if (msg.kind === "hello" && Date.now() - lastAliveReply > 5000) {
+              lastAliveReply = Date.now();
+              broadcast({ kind: "alive", from: clientId });
             }
-          };
-        }
-        function startOffer(forClient) {
-          guestId = forClient;
-          newPC();
-          attachChannel(pc.createDataChannel("chat"));
-          pc.createOffer().then(function (offer) { return pc.setLocalDescription(offer); })
-            .then(function () { sigSend({ kind: "offer", to: forClient, sdp: pc.localDescription }); })
-            .catch(function () {});
-        }
-        function answerOffer(msg) {
-          gotOffer = true;
-          if (joinTimer) { clearInterval(joinTimer); joinTimer = null; }
-          newPC();
-          pc.ondatachannel = function (e) { attachChannel(e.channel); };
-          pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)).then(function () {
-            flushIce();
-            return pc.createAnswer();
-          }).then(function (ans) { return pc.setLocalDescription(ans); })
-            .then(function () { sigSend({ kind: "answer", to: msg.from, sdp: pc.localDescription }); })
-            .catch(function () {});
-        }
-        function onSig(msg) {
-          if (!msg || msg.from === clientId) return;
-          if (msg.kind === "ice") { if (!msg.to || msg.to === clientId) addIce(msg.candidate); return; }
-          if (isJoiner) {
-            if (msg.kind === "offer" && msg.to === clientId) {
-              // a re-offer while the first attempt is still connecting is
-              // just the host answering a repeated join — ignore it
-              if (gotOffer && pc && pc.connectionState !== "failed" && pc.connectionState !== "closed") return;
-              answerOffer(msg);
-            }
-          } else {
-            if (msg.kind === "join") {
-              if (peerAuthed) return;
-              // duplicate joins from the same guest while an attempt is
-              // already in flight: let that attempt finish
-              if (guestId === msg.from && pc && pc.connectionState !== "failed" && pc.connectionState !== "closed") return;
-              startOffer(msg.from);
-            } else if (msg.kind === "answer" && msg.to === clientId && pc && !remoteSet) {
-              pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)).then(flushIce).catch(function () {});
-            }
+            if (isNew) updatePeerDetail();
           }
         }
-
-        /* ---------- signaling broker connect, with fallback + watchdog ---------- */
-        function connectBroker(onReady) {
-          brokerReady = onReady;
-          var settled = false;
-          var url = BROKERS[brokerIdx];
-          var c = null;
-          try {
-            c = mqtt.connect(url, {
-              clientId: "lb" + clientId + Math.random().toString(36).slice(2, 6),
-              connectTimeout: 9000, reconnectPeriod: 0, clean: true, keepalive: 30
-            });
-          } catch (e) { nextBroker(); return; }
-          mq = c;
-          brokerTimer = setTimeout(function () {
-            if (settled) return;
-            settled = true;
-            try { c.end(true); } catch (e) {}
-            if (mq === c) mq = null;
-            nextBroker();
-          }, 10000);
-          c.on("connect", function () {
-            c.subscribe("lingbao/fanyi/v2/" + roomCode, function () {
-              if (settled) return;
-              settled = true;
-              if (brokerTimer) { clearTimeout(brokerTimer); brokerTimer = null; }
-              if (brokerReady) { var f = brokerReady; brokerReady = null; f(); }
-            });
-          });
-          c.on("message", function (topic, payload) {
-            try { onSig(JSON.parse(payload.toString())); } catch (e) {}
-          });
-          c.on("error", function () {
-            if (settled) return;
-            settled = true;
-            if (brokerTimer) { clearTimeout(brokerTimer); brokerTimer = null; }
-            try { c.end(true); } catch (e) {}
-            if (mq === c) mq = null;
-            nextBroker();
-          });
+        function teardownSync() {
+          if (syncWatchdog) { clearTimeout(syncWatchdog); syncWatchdog = null; }
+          if (aliveTimer) { clearInterval(aliveTimer); aliveTimer = null; }
+          for (var i = 0; i < mqClients.length; i++) {
+            try { mqClients[i].end(true); } catch (e) {}
+          }
+          mqClients = [];
+          mqReady = false;
         }
-        function nextBroker() {
-          brokerIdx++;
-          if (brokerIdx < BROKERS.length) connectBroker(brokerReady);
-          else { brokerReady = null; if (!peerAuthed) setConn("off", "connFail"); }
+        function connectSync() {
+          teardownSync();
+          peers = {};
+          if (typeof mqtt === "undefined") {
+            setConn("off", "syncFail");
+            showConnError("netNeeded");
+            showRetry(true);
+            return;
+          }
+          setConn("wait", "syncConnecting");
+          showConnError(null);
+          showRetry(false);
+          var readyFired = false;
+          for (var b = 0; b < BROKERS.length; b++) {
+            (function (url) {
+              var c = null;
+              try {
+                c = mqtt.connect(url, {
+                  clientId: "lb" + clientId + Math.random().toString(36).slice(2, 6),
+                  connectTimeout: 9000, reconnectPeriod: 4000, clean: true, keepalive: 30
+                });
+              } catch (e) { return; }
+              mqClients.push(c);
+              c.on("connect", function () {
+                c.subscribe(TOPIC, function () {
+                  mqReady = true;
+                  if (!readyFired) {
+                    readyFired = true;
+                    if (syncWatchdog) { clearTimeout(syncWatchdog); syncWatchdog = null; }
+                    setConn("on", "syncOn");
+                    showConnError(null);
+                    showRetry(false);
+                    flushQueue();
+                    broadcast({ kind: "hello", from: clientId });
+                    updatePeerDetail();
+                  }
+                });
+              });
+              c.on("message", function (topic, payload) {
+                try { onSyncMessage(JSON.parse(payload.toString())); } catch (e) {}
+              });
+            })(BROKERS[b]);
+          }
+          // never spin on "connecting" forever: if no broker answered in
+          // 14s, say so plainly and offer a retry
+          syncWatchdog = setTimeout(function () {
+            syncWatchdog = null;
+            if (!mqReady) {
+              setConn("off", "syncFail");
+              showConnError("brokerFail");
+              showRetry(true);
+            }
+          }, 14000);
+          aliveTimer = setInterval(function () {
+            if (mqReady) { broadcast({ kind: "alive", from: clientId }); updatePeerDetail(); }
+          }, 30000);
         }
-        function cryptoReady() {
-          return !!(window.crypto && window.crypto.subtle && window.TextEncoder);
-        }
-        function signalingReady() {
-          return typeof mqtt !== "undefined" && typeof RTCPeerConnection !== "undefined";
-        }
-
-        $("createBtn").addEventListener("click", function () {
-          if (!signalingReady()) { setStatus(t("netNeeded"), true); return; }
-          if (!cryptoReady()) { setStatus(t("cryptoFail"), true); return; }
-          teardownRoom();
-          isJoiner = false;
-          roomCode = String(Math.floor(100000 + Math.random() * 900000));
-          brokerIdx = 0;
-          setConn("wait", "connecting");
-          deriveRoomKey(roomCode).then(function (key) {
-            roomKey = key;
-            $("codeText").textContent = roomCode;
-            $("codeDisplay").style.display = "block";
-            connectBroker(function () { setConn("wait", "waitingPeer"); });
-          }).catch(function () { setStatus(t("cryptoFail"), true); });
+        $("retrySyncBtn").addEventListener("click", function () { connectSync(); });
+        // phones freeze background tabs and brokers drop; when the page
+        // comes back and nothing is connected, rejoin automatically
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden || mqReady) return;
+          var anyAlive = false;
+          for (var i = 0; i < mqClients.length; i++) if (mqClients[i].connected) anyAlive = true;
+          if (!anyAlive) connectSync();
         });
-
-        $("joinBtn").addEventListener("click", function () {
-          if (!signalingReady()) { setStatus(t("netNeeded"), true); return; }
-          if (!cryptoReady()) { setStatus(t("cryptoFail"), true); return; }
-          var code = $("joinInput").value.replace(/\D/g, "");
-          if (!/^\d{6}$/.test(code)) { setStatus(t("enterCode"), true); return; }
-          teardownRoom();
-          isJoiner = true;
-          roomCode = code;
-          brokerIdx = 0;
-          setConn("wait", "connecting");
-          deriveRoomKey(code).then(function (key) {
-            roomKey = key;
-            connectBroker(function () {
-              // the host may not have created the room yet, or a join may
-              // get lost — re-announce every 4s, and stop pretending to
-              // connect after 45s
-              sigSend({ kind: "join" });
-              joinTimer = setInterval(function () { if (!gotOffer) sigSend({ kind: "join" }); }, 4000);
-              joinDeadline = setTimeout(function () {
-                joinDeadline = null;
-                if (!peerAuthed) {
-                  if (joinTimer) { clearInterval(joinTimer); joinTimer = null; }
-                  setConn("off", gotOffer ? "connFail" : "badCode");
-                }
-              }, 45000);
-            });
-          }).catch(function () { setStatus(t("cryptoFail"), true); });
-        });
-
+        connectSync();
         applyI18n();
       })();
     </script>
